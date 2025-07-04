@@ -5,7 +5,10 @@ import { Transaction } from '@/types/chatbot';
  * Criteria: PNR generation failed, refund status is null/empty
  */
 export const shouldInitiateRefund = (transaction: Transaction): boolean => {
-  const hasPNRFailure = !transaction.pnr || transaction.pnr.trim() === '' || transaction.pnr.toLowerCase() === 'failed';
+  const hasPNRFailure = !transaction.pnr || 
+                       transaction.pnr.trim() === '' || 
+                       transaction.pnr.toLowerCase() === 'failed' ||
+                       transaction.pnr.toLowerCase() === 'not generated';
   const hasNoRefundStatus = !transaction.refund_status || transaction.refund_status.trim() === '';
 
   return hasPNRFailure && hasNoRefundStatus;
