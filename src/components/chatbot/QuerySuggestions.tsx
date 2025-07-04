@@ -103,49 +103,48 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   return (
     <div 
       ref={dropdownRef}
-      className="absolute top-full left-0 right-0 mt-3 backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto animate-fade-in scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent"
+      className="absolute top-full left-0 right-0 mt-3 z-50 max-h-80 overflow-y-auto animate-fade-in"
     >
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
-          <Sparkles className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-medium text-blue-200/80 uppercase tracking-wide">
-            Quick Suggestions
-          </span>
-        </div>
-
-        {sortedCategories.map(([category, categorySuggestions]) => (
-          <div key={category} className="mb-4 last:mb-0">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">
-                {categoryIcons[category as keyof typeof categoryIcons]}
-              </span>
-              <h4 className="text-xs font-medium text-blue-200/70 uppercase tracking-wider">
-                {categoryLabels[category as keyof typeof categoryLabels]}
-              </h4>
-            </div>
-            
-            <div className="space-y-2">
-              {categorySuggestions.slice(0, 3).map((suggestion, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSuggestionClick(suggestion.display)}
-                  className="w-full text-left group relative overflow-hidden"
-                >
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-400/30 transition-all duration-300 transform hover:scale-[1.02]">
-                    <span className="text-white/90 font-light text-sm group-hover:text-white transition-colors">
-                      {suggestion.display}
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-blue-400/60 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all duration-300" />
-                  </div>
-                  
-                  {/* Hover glow effect */}
-                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur"></div>
-                </button>
-              ))}
-            </div>
+      <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl">
+        <div className="p-4">
+          {/* Header */}
+          <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-700/50">
+            <Sparkles className="w-4 h-4 text-blue-400" />
+            <span className="text-sm font-medium text-slate-200 uppercase tracking-wide">
+              Quick Suggestions
+            </span>
           </div>
-        ))}
+
+          {sortedCategories.map(([category, categorySuggestions]) => (
+            <div key={category} className="mb-4 last:mb-0">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">
+                  {categoryIcons[category as keyof typeof categoryIcons]}
+                </span>
+                <h4 className="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                  {categoryLabels[category as keyof typeof categoryLabels]}
+                </h4>
+              </div>
+              
+              <div className="space-y-2">
+                {categorySuggestions.slice(0, 3).map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestionClick(suggestion.display)}
+                    className="w-full text-left group relative overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-700/30 border border-slate-600/30 hover:bg-slate-700/50 hover:border-blue-400/30 transition-all duration-300 transform hover:scale-[1.02]">
+                      <span className="text-white/90 font-light text-sm group-hover:text-white transition-colors leading-relaxed">
+                        {suggestion.display}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-blue-400/60 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all duration-300 flex-shrink-0 ml-2" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

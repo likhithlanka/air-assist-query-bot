@@ -2,10 +2,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, User, Loader2, Plane } from 'lucide-react';
+import { Send, Bot, User, Loader2, Plane, Eye, EyeOff } from 'lucide-react';
 import { ChatMessage } from '@/components/chatbot/ChatMessage';
 import { TransactionList } from '@/components/chatbot/TransactionList';
 import { QuerySuggestions } from '@/components/chatbot/QuerySuggestions';
+import { FlightTicketDetails } from '@/components/chatbot/FlightTicketDetails';
 import { useChatbot } from '@/hooks/useChatbot';
 import { ChatState } from '@/types/chatbot';
 
@@ -29,6 +30,7 @@ const Chatbot = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [showTicketDetails, setShowTicketDetails] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -65,7 +67,7 @@ const Chatbot = () => {
     setInputValue(value);
     
     if (currentState === ChatState.QUERY_HANDLING && selectedTransaction) {
-      setShowSuggestions(value.trim().length > 0);
+      setShowSuggestions(value.trim().length > 0 || value.length === 0);
     }
   };
 
@@ -76,9 +78,13 @@ const Chatbot = () => {
   };
 
   const handleInputFocus = () => {
-    if (currentState === ChatState.QUERY_HANDLING && selectedTransaction && inputValue.trim().length > 0) {
+    if (currentState === ChatState.QUERY_HANDLING && selectedTransaction) {
       setShowSuggestions(true);
     }
+  };
+
+  const toggleTicketDetails = () => {
+    setShowTicketDetails(!showTicketDetails);
   };
 
   return (
@@ -109,7 +115,7 @@ const Chatbot = () => {
         </svg>
       </div>
 
-      <div className="max-w-4xl mx-auto p-6 relative z-10">
+      <div className="max-w-7xl mx-auto p-6 relative z-10">
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="flex items-center justify-center gap-4 mb-4">
@@ -130,79 +136,137 @@ const Chatbot = () => {
           </div>
         </div>
 
-        {/* Chat Container */}
-        <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-          {/* Messages Area */}
-          <div className="h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
-            {messages.map((message, index) => (
-              <div key={index} className="animate-fade-in">
-                <ChatMessage message={message} />
-              </div>
-            ))}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chat Container */}
+          <div className="lg:col-span-2">
+            <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+              {/* Messages Area */}
+              <div className="h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
+                {messages.map((message, index) => (
+                  <div key={index} className="animate-fade-in">
+                    <ChatMessage message={message} />
+                  </div>
+                ))}
 
-            {/* Transaction List */}
-            {currentState === ChatState.TRANSACTION_SELECTION && transactions.length > 0 && (
-              <div className="animate-fade-in">
-                <TransactionList 
-                  transactions={transactions} 
-                  onSelect={selectTransaction}
-                />
-              </div>
-            )}
+                {/* Transaction List */}
+                {currentState === ChatState.TRANSACTION_SELECTION && transactions.length > 0 && (
+                  <div className="animate-fade-in">
+                    <TransactionList 
+                      transactions={transactions} 
+                      onSelect={selectTransaction}
+                    />
+                  </div>
+                )}
 
-            {isLoading && (
-              <div className="flex items-center justify-center gap-3 py-8">
-                <div className="relative">
-                  <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
-                  <div className="absolute inset-0 bg-blue-400/20 rounded-full blur animate-pulse"></div>
-                </div>
-                <span className="text-blue-200/80 font-light">Processing your request...</span>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input Area */}
-          <div className="border-t border-white/10 p-6 bg-white/5 backdrop-blur-sm">
-            <div className="relative">
-              <div className="flex gap-4 items-end">
-                <div className="flex-1 relative">
-                  <Input
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onKeyPress={handleKeyPress}
-                    onFocus={handleInputFocus}
-                    placeholder={
-                      currentState === ChatState.EMAIL_COLLECTION 
-                        ? "Enter your email address..." 
-                        : "Ask me anything about your booking..."
-                    }
-                    className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 rounded-2xl px-6 py-4 text-lg font-light focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
-                    disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
-                  />
-                  
-                  {/* Query Suggestions Dropdown */}
-                  <QuerySuggestions 
-                    queryInput={inputValue}
-                    onSuggestionClick={handleSuggestionClick}
-                    isVisible={showSuggestions}
-                    onClose={() => setShowSuggestions(false)}
-                    transaction={selectedTransaction || undefined}
-                    conversationMemory={conversationMemory}
-                  />
-                </div>
+                {isLoading && (
+                  <div className="flex items-center justify-center gap-3 py-8">
+                    <div className="relative">
+                      <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+                      <div className="absolute inset-0 bg-blue-400/20 rounded-full blur animate-pulse"></div>
+                    </div>
+                    <span className="text-blue-200/80 font-light">Processing your request...</span>
+                  </div>
+                )}
                 
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
-                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-4 shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
-                >
-                  <Send className="w-5 h-5" />
-                </Button>
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Input Area */}
+              <div className="border-t border-white/10 p-6 bg-white/5 backdrop-blur-sm">
+                <div className="relative">
+                  <div className="flex gap-4 items-end">
+                    <div className="flex-1 relative">
+                      <Input
+                        value={inputValue}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                        onFocus={handleInputFocus}
+                        placeholder={
+                          currentState === ChatState.EMAIL_COLLECTION 
+                            ? "Enter your email address..." 
+                            : "Ask me anything about your booking..."
+                        }
+                        className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 rounded-2xl px-6 py-4 text-base font-light focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
+                        disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
+                      />
+                      
+                      {/* Query Suggestions Dropdown */}
+                      <QuerySuggestions 
+                        queryInput={inputValue}
+                        onSuggestionClick={handleSuggestionClick}
+                        isVisible={showSuggestions}
+                        onClose={() => setShowSuggestions(false)}
+                        transaction={selectedTransaction || undefined}
+                        conversationMemory={conversationMemory}
+                      />
+                    </div>
+                    
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-4 shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                    >
+                      <Send className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+
+          {/* Flight Ticket Details Panel */}
+          {selectedTransaction && (
+            <div className="lg:col-span-1">
+              <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+                {/* Panel Header */}
+                <div className="border-b border-white/10 p-4 bg-white/5 backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-medium text-white">Flight Details</h3>
+                    <Button
+                      onClick={toggleTicketDetails}
+                      variant="ghost"
+                      size="sm"
+                      className="text-blue-400 hover:text-blue-300 hover:bg-white/10"
+                    >
+                      {showTicketDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Panel Content */}
+                <div className="h-[600px] overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
+                  {showTicketDetails ? (
+                    <FlightTicketDetails transaction={selectedTransaction} />
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Quick Summary */}
+                      <div className="backdrop-blur-sm bg-white/10 border border-white/20 rounded-2xl p-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <Plane className="w-5 h-5 text-blue-400" />
+                          <span className="font-semibold text-white">{selectedTransaction.flight_number}</span>
+                        </div>
+                        <div className="text-sm text-blue-200/70 space-y-1">
+                          <div>{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</div>
+                          <div>{selectedTransaction.date}</div>
+                          <div className="font-medium text-emerald-400">${selectedTransaction.total_amount_paid}</div>
+                        </div>
+                      </div>
+
+                      <div className="text-center py-8">
+                        <Button
+                          onClick={toggleTicketDetails}
+                          className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-3"
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Complete Details
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
