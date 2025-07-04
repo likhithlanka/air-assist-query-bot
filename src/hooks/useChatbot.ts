@@ -4,6 +4,12 @@ import { Message, Transaction, ChatState, ConversationMemory } from '@/types/cha
 import { sheetDbService } from '@/services/sheetDbService';
 import { validateEmail } from '@/utils/validation';
 import { generateResponse } from '@/utils/responseGenerator';
+import { 
+  shouldInitiateRefund, 
+  generateNextRefundId, 
+  createRefundInitiation, 
+  generateRefundInitiationMessage 
+} from '@/utils/refundOperations';
 
 export const useChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -71,11 +77,58 @@ export const useChatbot = () => {
     }
   }, [addMessage]);
 
-  const selectTransaction = useCallback((transaction: Transaction) => {
+  const selectTransaction = useCallback(async (transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    addMessage(`Selected booking ${transaction.booking_id}. What would you like to know about this transaction?`, 'bot');
+    setIsLoading(true);
+    
+    // Check if this transaction qualifies for automatic refund initiation
+    if (shouldInitiateRefund(transaction)) {
+      try {
+        // Generate next refund ID
+        const newRefundId = generateNextRefundId(transactions);
+        
+        // Create refund initiation data
+        const refundData = createRefundInitiation(transaction, newRefundId);
+        
+        // Attempt to update the backend/sheet (non-blocking)
+        const updateSuccess = await sheetDbService.createRefundRequest(refundData);
+        
+        // Update local transaction state
+        const updatedTransaction = {
+          ...transaction,
+          refund_id: newRefundId,
+          refund_status: 'Initiated',
+          refund_amount: transaction.total_amount_paid,
+          refund_date: refundData.refund_date,
+          refund_mode: refundData.refund_mode
+        };
+        
+        setSelectedTransaction(updatedTransaction);
+        
+        // Update the transactions list to reflect the change
+        setTransactions(prev => prev.map(t => 
+          t.transaction_id === transaction.transaction_id ? updatedTransaction : t
+        ));
+        
+        // Generate and display refund initiation message
+        const refundMessage = generateRefundInitiationMessage(transaction, newRefundId);
+        addMessage(refundMessage, 'bot');
+        
+        if (!updateSuccess) {
+          addMessage('Note: The refund request has been initiated locally. Please contact customer service to ensure it\'s processed in our system.', 'bot');
+        }
+        
+      } catch (error) {
+        console.error('Error initiating refund:', error);
+        addMessage(`Selected booking ${transaction.booking_id}. I notice there may be an issue with your PNR generation. What would you like to know about this transaction?`, 'bot');
+      }
+    } else {
+      addMessage(`Selected booking ${transaction.booking_id}. What would you like to know about this transaction?`, 'bot');
+    }
+    
     setCurrentState(ChatState.QUERY_HANDLING);
-  }, [addMessage]);
+    setIsLoading(false);
+  }, [addMessage, transactions]);
 
   const handleQuery = useCallback(async (query: string) => {
     if (!selectedTransaction) return;
