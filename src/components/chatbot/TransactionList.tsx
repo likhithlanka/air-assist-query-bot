@@ -13,7 +13,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
     <div className="space-y-3">
       {transactions.map((transaction) => (
         <div
-          key={transaction.id}
+          key={transaction.transaction_id}
           onClick={() => onSelect(transaction)}
           className="bg-white border border-[#E9E9E8] rounded-lg p-4 cursor-pointer hover:border-[#2E95E5] hover:shadow-sm transition-all duration-200 group"
         >

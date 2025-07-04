@@ -1,27 +1,40 @@
 
 export interface Transaction {
-  id: string;
+  transaction_id: string;
+  user_email: string;
+  date: string;
+  payment_instrument: string;
+  payment_gateway: string;
+  platform: string;
+  amount: number;
+  status: string;
+  refund_id: string;
+  refund_status: string;
+  refund_amount: number;
+  refund_date: string;
   booking_id: string;
-  email: string;
+  pnr: string;
   passenger_name: string;
+  contact_number: string;
+  frequent_flyer_id: string;
   flight_number: string;
   departure_airport: string;
   arrival_airport: string;
   departure_time: string;
   arrival_time: string;
-  travel_date: string;
   travel_class: string;
   seat_number: string;
   seat_type: string;
-  total_amount_paid: number;
-  refund_status: string;
-  refund_amount: number;
-  refund_date: string;
-  refund_mode: string;
+  meal_selected: string;
   baggage_addon: string;
   wifi_addon: string;
-  meal_selected: string;
-  status: string;
+  checkin_status: string;
+  boarding_group: string;
+  coupon_used: string;
+  ticket_price: number;
+  taxes: number;
+  total_amount_paid: number;
+  refund_mode: string;
 }
 
 export interface Message {
