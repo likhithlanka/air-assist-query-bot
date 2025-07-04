@@ -106,15 +106,32 @@ export const getQuerySuggestions = (input: string) => {
 
 // Specific response functions for each intent
 const generateRefundStatusResponse = (transaction: Transaction): string => {
-  return `Your refund status for booking ${transaction.booking_id} is: ${transaction.refund_status}`;
+  // Check if refund is initiated
+  if (!transaction.refund_id || transaction.refund_amount === 0) {
+    return `There is no refund initiated for your booking ${transaction.booking_id}. If you believe you're eligible for a refund, please contact customer support.`;
+  }
+  
+  return `Your refund status for booking ${transaction.booking_id} is: ${transaction.refund_status}
+Refund ID: ${transaction.refund_id}
+Amount: $${transaction.refund_amount}`;
 };
 
 const generateRefundTimingResponse = (transaction: Transaction): string => {
+  // Check if refund is initiated
+  if (!transaction.refund_id || transaction.refund_amount === 0) {
+    return `There is no refund initiated for your booking ${transaction.booking_id}. Please contact customer support if you believe you're eligible for a refund.`;
+  }
+  
   const expectedDate = calculateExpectedRefundDate(transaction.refund_date, transaction.refund_mode);
   return `You can expect your refund by ${expectedDate} via ${transaction.refund_mode}. Processing started on ${transaction.refund_date}.`;
 };
 
 const generateRefundAmountResponse = (transaction: Transaction): string => {
+  // Check if refund is initiated
+  if (!transaction.refund_id || transaction.refund_amount === 0) {
+    return `There is no refund initiated for your booking ${transaction.booking_id}. You are not currently eligible for a refund.`;
+  }
+  
   return `You'll be refunded $${transaction.refund_amount} through ${transaction.refund_mode} for booking ${transaction.booking_id}.`;
 };
 
@@ -122,28 +139,32 @@ const generateFlightDetailsResponse = (transaction: Transaction): string => {
   return `Flight: ${transaction.flight_number}
 From: ${transaction.departure_airport} at ${transaction.departure_time}
 To: ${transaction.arrival_airport} at ${transaction.arrival_time}
+Date: ${transaction.date}
 Class: ${transaction.travel_class}
 Seat: ${transaction.seat_number} (${transaction.seat_type})`;
 };
 
 const generateDepartureTimeResponse = (transaction: Transaction): string => {
-  return `Your flight ${transaction.flight_number} departs from ${transaction.departure_airport} at ${transaction.departure_time}.`;
+  return `Your flight ${transaction.flight_number} departs from ${transaction.departure_airport} at ${transaction.departure_time} on ${transaction.date}.`;
 };
 
 const generateArrivalTimeResponse = (transaction: Transaction): string => {
-  return `Your flight ${transaction.flight_number} arrives at ${transaction.arrival_airport} at ${transaction.arrival_time}.`;
+  return `Your flight ${transaction.flight_number} arrives at ${transaction.arrival_airport} at ${transaction.arrival_time} on ${transaction.date}.`;
 };
 
 const generateBookingDetailsResponse = (transaction: Transaction): string => {
   return `Booking ID: ${transaction.booking_id}
+PNR: ${transaction.pnr}
 Passenger: ${transaction.passenger_name}
-Amount Paid: $${transaction.total_amount_paid}
-Addons: ${transaction.baggage_addon}, ${transaction.wifi_addon}
-Meal: ${transaction.meal_selected}`;
+Contact: ${transaction.contact_number}
+Total Amount Paid: $${transaction.total_amount_paid}
+Add-ons: Baggage: ${transaction.baggage_addon}, WiFi: ${transaction.wifi_addon}
+Meal: ${transaction.meal_selected}
+Check-in Status: ${transaction.checkin_status}`;
 };
 
 const generateSeatNumberResponse = (transaction: Transaction): string => {
-  return `Your seat number is ${transaction.seat_number} (${transaction.seat_type}) in ${transaction.travel_class} class.`;
+  return `Your seat number is ${transaction.seat_number} (${transaction.seat_type}) in ${transaction.travel_class} class for flight ${transaction.flight_number}.`;
 };
 
 const generateMealSelectionResponse = (transaction: Transaction): string => {
@@ -151,11 +172,12 @@ const generateMealSelectionResponse = (transaction: Transaction): string => {
 };
 
 const generatePaymentAmountResponse = (transaction: Transaction): string => {
-  return `You paid a total of $${transaction.total_amount_paid} for booking ${transaction.booking_id}.`;
+  return `You paid a total of $${transaction.total_amount_paid} for booking ${transaction.booking_id}.
+Breakdown: Ticket Price: $${transaction.ticket_price}, Taxes: $${transaction.taxes}`;
 };
 
 const generatePaymentMethodResponse = (transaction: Transaction): string => {
-  return `You paid using ${transaction.payment_instrument} via ${transaction.payment_gateway}.`;
+  return `You paid using ${transaction.payment_instrument} via ${transaction.payment_gateway} on ${transaction.platform}.`;
 };
 
 const generatePaymentBreakdownResponse = (transaction: Transaction): string => {
@@ -163,11 +185,18 @@ const generatePaymentBreakdownResponse = (transaction: Transaction): string => {
 Ticket Price: $${transaction.ticket_price}
 Taxes: $${transaction.taxes}
 Total Amount: $${transaction.total_amount_paid}
-Payment Method: ${transaction.payment_instrument}`;
+Payment Method: ${transaction.payment_instrument} via ${transaction.payment_gateway}
+Payment Status: ${transaction.status}
+${transaction.coupon_used ? `Coupon Used: ${transaction.coupon_used}` : 'No coupon used'}`;
 };
 
 // Generic category responses (fallback when no specific intent is detected)
 const generateGenericRefundResponse = (transaction: Transaction): string => {
+  // Check if refund is initiated
+  if (!transaction.refund_id || transaction.refund_amount === 0) {
+    return `There is no refund initiated for your booking ${transaction.booking_id}. You are not currently eligible for a refund. If you believe this is an error, please contact customer support.`;
+  }
+  
   const expectedDate = calculateExpectedRefundDate(transaction.refund_date, transaction.refund_mode);
   
   return `Your refund for booking ${transaction.booking_id} is ${transaction.refund_status}.
@@ -189,6 +218,10 @@ const generateGenericPaymentResponse = (transaction: Transaction): string => {
 };
 
 const calculateExpectedRefundDate = (refundDate: string, refundMode: string): string => {
+  if (!refundDate) {
+    return "Date not available";
+  }
+  
   const date = new Date(refundDate);
   let daysToAdd = 7; // default
   
@@ -202,6 +235,17 @@ const calculateExpectedRefundDate = (refundDate: string, refundMode: string): st
     case 'bank transfer':
       daysToAdd = 14;
       break;
+    case 'manual':
+      daysToAdd = 5;
+      break;
+    case 'travel credit':
+      daysToAdd = 3;
+      break;
+    case 'original source':
+      daysToAdd = 10;
+      break;
+    default:
+      daysToAdd = 7;
   }
   
   date.setDate(date.getDate() + daysToAdd);
