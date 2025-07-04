@@ -7,7 +7,8 @@ class SheetDbService {
   async getTransactionsByEmail(email: string): Promise<Transaction[]> {
     try {
       const response = await fetch(`${SHEETDB_URL}/search?user_email=${encodeURIComponent(email)}`);
-      
+      console.log(`Fetching transactions for email: ${email}`);
+      console.log(`Response status: ${response}`);
       if (!response.ok) {
         throw new Error('Failed to fetch transactions');
       }
