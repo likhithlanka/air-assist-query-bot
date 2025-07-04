@@ -8,11 +8,17 @@ interface QuerySuggestionsProps {
   onSuggestionClick: (suggestion: string) => void;
 }
 
+interface QuerySuggestion {
+  display: string;
+  intent: string;
+  category: string;
+}
+
 export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({ 
   queryInput, 
   onSuggestionClick 
 }) => {
-  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<QuerySuggestion[]>([]);
 
   useEffect(() => {
     const newSuggestions = getQuerySuggestions(queryInput);
@@ -25,7 +31,7 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
     }
     acc[suggestion.category].push(suggestion);
     return acc;
-  }, {} as Record<string, any[]>);
+  }, {} as Record<string, QuerySuggestion[]>);
 
   const categoryLabels = {
     refundStatus: 'Refund Information',
