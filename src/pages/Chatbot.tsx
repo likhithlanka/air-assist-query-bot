@@ -27,6 +27,7 @@ const Chatbot = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,12 +47,37 @@ const Chatbot = () => {
     }
     
     setInputValue('');
+    setShowSuggestions(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    
+    // Show suggestions only when in query handling state and user is typing
+    if (currentState === ChatState.QUERY_HANDLING && selectedTransaction) {
+      setShowSuggestions(value.trim().length > 0);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInputValue(suggestion);
+    setShowSuggestions(false);
+    handleQuery(suggestion);
+  };
+
+  const handleInputFocus = () => {
+    if (currentState === ChatState.QUERY_HANDLING && selectedTransaction && inputValue.trim().length > 0) {
+      setShowSuggestions(true);
     }
   };
 
@@ -83,17 +109,6 @@ const Chatbot = () => {
               />
             )}
 
-            {/* Query Suggestions */}
-            {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
-              <QuerySuggestions 
-                queryInput={queryInput}
-                onSuggestionClick={(suggestion) => {
-                  setInputValue(suggestion);
-                  handleQuery(suggestion);
-                }}
-              />
-            )}
-
             {isLoading && (
               <div className="flex items-center gap-2 text-[#6B6B6B]">
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -106,26 +121,40 @@ const Chatbot = () => {
 
           {/* Input Area */}
           <div className="border-t border-[#E9E9E8] p-4">
-            <div className="flex gap-3">
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={
-                  currentState === ChatState.EMAIL_COLLECTION 
-                    ? "Enter your email address..." 
-                    : "Type your question or select from suggestions above..."
-                }
-                className="flex-1 border-[#E9E9E8] focus:border-[#2E95E5] focus:ring-[#2E95E5]"
-                disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
-              />
-              <Button
-                onClick={handleSendMessage}
-                disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
-                className="bg-[#2E95E5] hover:bg-[#2680C4] text-white"
-              >
-                <Send className="w-4 h-4" />
-              </Button>
+            <div className="relative">
+              <div className="flex gap-3">
+                <div className="flex-1 relative">
+                  <Input
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onKeyPress={handleKeyPress}
+                    onFocus={handleInputFocus}
+                    placeholder={
+                      currentState === ChatState.EMAIL_COLLECTION 
+                        ? "Enter your email address..." 
+                        : "Type your question..."
+                    }
+                    className="border-[#E9E9E8] focus:border-[#2E95E5] focus:ring-[#2E95E5]"
+                    disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
+                  />
+                  
+                  {/* Query Suggestions Dropdown */}
+                  <QuerySuggestions 
+                    queryInput={inputValue}
+                    onSuggestionClick={handleSuggestionClick}
+                    isVisible={showSuggestions}
+                    onClose={() => setShowSuggestions(false)}
+                  />
+                </div>
+                
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
+                  className="bg-[#2E95E5] hover:bg-[#2680C4] text-white"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>

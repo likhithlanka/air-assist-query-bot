@@ -1,4 +1,3 @@
-
 import { Transaction } from '@/types/chatbot';
 
 const intentKeywords = {
@@ -76,33 +75,33 @@ const intentKeywords = {
   }
 };
 
-export const generateResponse = (query: string, transaction: Transaction): string => {
-  const queryLower = query.toLowerCase();
+export const getQuerySuggestions = (input: string) => {
+  const inputLower = input.toLowerCase();
+  const suggestions: { display: string; intent: string; category: string; priority: number }[] = [];
   
-  // Determine intent based on keywords
-  let detectedIntent = '';
-  let maxMatches = 0;
+  // Calculate keyword match count for each category
+  const categoryPriorities: Record<string, number> = {};
   
   Object.entries(intentKeywords).forEach(([intent, config]) => {
-    const matches = config.keywords.filter(keyword => queryLower.includes(keyword)).length;
-    if (matches > maxMatches) {
-      maxMatches = matches;
-      detectedIntent = config.category;
+    const matchCount = config.keywords.filter(keyword => 
+      inputLower.includes(keyword) || keyword.includes(inputLower)
+    ).length;
+    
+    categoryPriorities[config.category] = matchCount;
+    
+    // Show suggestions if there are keyword matches or if input is empty
+    if (matchCount > 0 || inputLower === '') {
+      config.questions.forEach(question => {
+        suggestions.push({
+          ...question,
+          category: config.category,
+          priority: matchCount
+        });
+      });
     }
   });
-
-  switch (detectedIntent) {
-    case 'refundStatus':
-      return generateRefundResponse(transaction);
-    case 'flightDetails':
-      return generateFlightResponse(transaction);
-    case 'bookingDetails':
-      return generateBookingResponse(transaction);
-    case 'paymentDetails':
-      return generatePaymentResponse(transaction);
-    default:
-      return "I apologize, but I can only provide information about refund status, flight details, and booking details. For other queries, please contact our support team.";
-  }
+  
+  return suggestions;
 };
 
 const generateRefundResponse = (transaction: Transaction): string => {
@@ -156,24 +155,31 @@ const calculateExpectedRefundDate = (refundDate: string, refundMode: string): st
   return date.toLocaleDateString();
 };
 
-export const getQuerySuggestions = (input: string) => {
-  const inputLower = input.toLowerCase();
-  const suggestions: { display: string; intent: string; category: string }[] = [];
+export const generateResponse = (query: string, transaction: Transaction): string => {
+  const queryLower = query.toLowerCase();
+  
+  // Determine intent based on keywords
+  let detectedIntent = '';
+  let maxMatches = 0;
   
   Object.entries(intentKeywords).forEach(([intent, config]) => {
-    const hasMatchingKeyword = config.keywords.some(keyword => 
-      inputLower.includes(keyword) || keyword.includes(inputLower)
-    );
-    
-    if (hasMatchingKeyword || inputLower === '') {
-      config.questions.forEach(question => {
-        suggestions.push({
-          ...question,
-          category: config.category
-        });
-      });
+    const matches = config.keywords.filter(keyword => queryLower.includes(keyword)).length;
+    if (matches > maxMatches) {
+      maxMatches = matches;
+      detectedIntent = config.category;
     }
   });
-  
-  return suggestions;
+
+  switch (detectedIntent) {
+    case 'refundStatus':
+      return generateRefundResponse(transaction);
+    case 'flightDetails':
+      return generateFlightResponse(transaction);
+    case 'bookingDetails':
+      return generateBookingResponse(transaction);
+    case 'paymentDetails':
+      return generatePaymentResponse(transaction);
+    default:
+      return "I apologize, but I can only provide information about refund status, flight details, and booking details. For other queries, please contact our support team.";
+  }
 };
