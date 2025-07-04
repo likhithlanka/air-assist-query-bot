@@ -103,9 +103,10 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   return (
     <div 
       ref={dropdownRef}
-      className="absolute top-full left-0 right-0 mt-3 z-50 max-h-80 overflow-y-auto animate-fade-in"
+      className="fixed inset-x-4 bottom-24 z-[9999] max-h-80 overflow-y-auto animate-fade-in"
+      style={{ maxWidth: 'calc(100vw - 2rem)' }}
     >
-      <div className="bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl">
+      <div className="bg-slate-800/98 backdrop-blur-xl border border-slate-600/50 rounded-2xl shadow-2xl">
         <div className="p-4">
           {/* Header */}
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-700/50">
@@ -133,7 +134,7 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
                     onClick={() => handleSuggestionClick(suggestion.display)}
                     className="w-full text-left group relative overflow-hidden"
                   >
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-700/30 border border-slate-600/30 hover:bg-slate-700/50 hover:border-blue-400/30 transition-all duration-300 transform hover:scale-[1.02]">
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-slate-700/40 border border-slate-600/40 hover:bg-slate-700/60 hover:border-blue-400/40 transition-all duration-300 transform hover:scale-[1.02]">
                       <span className="text-white/90 font-light text-sm group-hover:text-white transition-colors leading-relaxed">
                         {suggestion.display}
                       </span>
