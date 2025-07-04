@@ -16,21 +16,31 @@ export const shouldInitiateRefund = (transaction: Transaction): boolean => {
 
 /**
  * Generates the next refund ID by incrementing the highest existing refund_id
+ * Fetches all transactions to ensure we get the true maximum refund ID
  */
-export const generateNextRefundId = (transactions: Transaction[]): string => {
-  let maxRefundNumber = 10000; // Default starting number
-
-  transactions.forEach(transaction => {
-    if (transaction.refund_id && transaction.refund_id.startsWith('RFND')) {
-      const numberPart = transaction.refund_id.replace('RFND', '');
-      const refundNumber = parseInt(numberPart, 10);
-      if (!isNaN(refundNumber) && refundNumber > maxRefundNumber) {
-        maxRefundNumber = refundNumber;
-      }
+export const generateNextRefundId = async (): Promise<string> => {
+  try {
+    const response = await fetch('https://sheetdb.io/api/v1/rmbktpz2h5o0j');
+    const data = await response.json();
+    
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid data format from API');
     }
-  });
-
-  return `RFND${maxRefundNumber + 1}`;
+    
+    const maxNum = Math.max(...data.map((row: any) => {
+      if (!row.refund_id) return 0;
+      const match = row.refund_id.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    }));
+    
+    // If no refund IDs exist, start with 10001
+    const nextNumber = maxNum > 0 ? maxNum + 1 : 10001;
+    return `RFND${nextNumber}`;
+  } catch (error) {
+    console.error('Error fetching refund IDs:', error);
+    // Fallback to default logic if API fails
+    return `RFND10001`;
+  }
 };
 
 /**

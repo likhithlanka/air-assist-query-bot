@@ -84,8 +84,8 @@ export const useChatbot = () => {
     // Check if this transaction qualifies for automatic refund initiation
     if (shouldInitiateRefund(transaction)) {
       try {
-        // Generate next refund ID
-        const newRefundId = generateNextRefundId(transactions);
+        // Generate next refund ID (now async)
+        const newRefundId = await generateNextRefundId();
         
         // Create refund initiation data
         const refundData = createRefundInitiation(transaction, newRefundId);
