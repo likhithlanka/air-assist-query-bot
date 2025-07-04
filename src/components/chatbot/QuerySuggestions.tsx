@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getQuerySuggestions } from '@/utils/responseGenerator';
 import { Transaction, ConversationMemory } from '@/types/chatbot';
-import { MessageSquare } from 'lucide-react';
+import { Sparkles, ChevronRight } from 'lucide-react';
 
 interface QuerySuggestionsProps {
   queryInput: string;
@@ -33,11 +33,9 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
 
   useEffect(() => {
     if (queryInput.trim()) {
-      // Use enhanced suggestions with transaction and memory context
       const newSuggestions = getQuerySuggestions(queryInput, transaction, conversationMemory);
       setSuggestions(newSuggestions);
     } else {
-      // Show default suggestions when input is empty
       const defaultSuggestions = getQuerySuggestions('', transaction, conversationMemory);
       setSuggestions(defaultSuggestions);
     }
@@ -72,7 +70,7 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
     return acc;
   }, {} as Record<string, QuerySuggestion[]>);
 
-  // Sort categories by highest priority (most keyword matches)
+  // Sort categories by highest priority
   const sortedCategories = Object.entries(groupedSuggestions).sort(([, a], [, b]) => {
     const avgPriorityA = a.reduce((sum, item) => sum + item.priority, 0) / a.length;
     const avgPriorityB = b.reduce((sum, item) => sum + item.priority, 0) / b.length;
@@ -88,6 +86,15 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
     contactSupport: 'Help & Support'
   };
 
+  const categoryIcons = {
+    refundStatus: '💸',
+    flightDetails: '✈️',
+    bookingDetails: '📅',
+    paymentDetails: '💳',
+    statusInquiry: '📋',
+    contactSupport: '🔧'
+  };
+
   const handleSuggestionClick = (suggestion: string) => {
     onSuggestionClick(suggestion);
     onClose();
@@ -96,25 +103,44 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   return (
     <div 
       ref={dropdownRef}
-      className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E9E9E8] rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
+      className="absolute top-full left-0 right-0 mt-3 backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl z-50 max-h-80 overflow-y-auto animate-fade-in scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent"
     >
-      <div className="p-2">
+      <div className="p-4">
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-white/10">
+          <Sparkles className="w-4 h-4 text-blue-400" />
+          <span className="text-sm font-medium text-blue-200/80 uppercase tracking-wide">
+            Quick Suggestions
+          </span>
+        </div>
+
         {sortedCategories.map(([category, categorySuggestions]) => (
-          <div key={category} className="mb-3 last:mb-0">
-            <h4 className="text-xs font-medium text-[#6B6B6B] mb-2 px-2 uppercase tracking-wide">
-              {categoryLabels[category as keyof typeof categoryLabels]}
-            </h4>
-            <div className="space-y-1">
-              {categorySuggestions.slice(0, 4).map((suggestion, index) => (
+          <div key={category} className="mb-4 last:mb-0">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">
+                {categoryIcons[category as keyof typeof categoryIcons]}
+              </span>
+              <h4 className="text-xs font-medium text-blue-200/70 uppercase tracking-wider">
+                {categoryLabels[category as keyof typeof categoryLabels]}
+              </h4>
+            </div>
+            
+            <div className="space-y-2">
+              {categorySuggestions.slice(0, 3).map((suggestion, index) => (
                 <button
                   key={index}
                   onClick={() => handleSuggestionClick(suggestion.display)}
-                  className="w-full text-left px-3 py-2 text-sm bg-[#F7F6F3] hover:bg-[#E9E9E8] border border-transparent hover:border-[#2E95E5] rounded-md transition-all duration-200 flex items-center gap-2 group"
+                  className="w-full text-left group relative overflow-hidden"
                 >
-                  <MessageSquare className="w-3 h-3 text-[#6B6B6B] group-hover:text-[#2E95E5] flex-shrink-0" />
-                  <span className="text-[#37352F] group-hover:text-[#2E95E5]">
-                    {suggestion.display}
-                  </span>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-400/30 transition-all duration-300 transform hover:scale-[1.02]">
+                    <span className="text-white/90 font-light text-sm group-hover:text-white transition-colors">
+                      {suggestion.display}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-blue-400/60 group-hover:text-blue-400 transform group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
+                  
+                  {/* Hover glow effect */}
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur"></div>
                 </button>
               ))}
             </div>

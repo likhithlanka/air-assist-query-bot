@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, Plane } from 'lucide-react';
 import { ChatMessage } from '@/components/chatbot/ChatMessage';
 import { TransactionList } from '@/components/chatbot/TransactionList';
 import { QuerySuggestions } from '@/components/chatbot/QuerySuggestions';
@@ -64,7 +64,6 @@ const Chatbot = () => {
     const value = e.target.value;
     setInputValue(value);
     
-    // Show suggestions only when in query handling state and user is typing
     if (currentState === ChatState.QUERY_HANDLING && selectedTransaction) {
       setShowSuggestions(value.trim().length > 0);
     }
@@ -83,37 +82,81 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute top-1/3 right-20 w-24 h-24 bg-cyan-400/10 rounded-full blur-lg animate-pulse delay-1000"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-40 h-40 bg-blue-400/5 rounded-full blur-2xl animate-pulse delay-2000"></div>
+        
+        {/* Dotted Flight Path */}
+        <svg className="absolute top-1/4 left-0 w-full h-full opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path 
+            d="M0,50 Q25,30 50,50 T100,40" 
+            stroke="url(#gradient)" 
+            strokeWidth="0.2" 
+            strokeDasharray="2,3" 
+            fill="none"
+            className="animate-pulse"
+          />
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.3"/>
+              <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.6"/>
+              <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.3"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <div className="max-w-4xl mx-auto p-6 relative z-10">
         {/* Header */}
-        <div className="mb-8 text-center border-b border-[#E9E9E8] pb-6">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <Bot className="w-8 h-8 text-[#2E95E5]" />
-            <h1 className="text-2xl font-semibold text-[#37352F]">Airline Service Bot</h1>
+        <div className="mb-8 text-center">
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-2xl flex items-center justify-center shadow-2xl">
+                <Plane className="w-8 h-8 text-white" />
+              </div>
+              <div className="absolute -inset-1 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-2xl blur opacity-30 animate-pulse"></div>
+            </div>
+            <div>
+              <h1 className="text-3xl font-light text-white mb-2 tracking-wide">
+                Flight Assistant
+              </h1>
+              <p className="text-blue-200/80 text-sm font-light">
+                Your intelligent travel companion
+              </p>
+            </div>
           </div>
-          <p className="text-[#6B6B6B]">Get instant help with your flight bookings and refunds</p>
         </div>
 
         {/* Chat Container */}
-        <div className="bg-[#F7F6F3] rounded-lg border border-[#E9E9E8] shadow-sm">
+        <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
           {/* Messages Area */}
-          <div className="h-[500px] overflow-y-auto p-6 space-y-4">
+          <div className="h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
             {messages.map((message, index) => (
-              <ChatMessage key={index} message={message} />
+              <div key={index} className="animate-fade-in">
+                <ChatMessage message={message} />
+              </div>
             ))}
 
             {/* Transaction List */}
             {currentState === ChatState.TRANSACTION_SELECTION && transactions.length > 0 && (
-              <TransactionList 
-                transactions={transactions} 
-                onSelect={selectTransaction}
-              />
+              <div className="animate-fade-in">
+                <TransactionList 
+                  transactions={transactions} 
+                  onSelect={selectTransaction}
+                />
+              </div>
             )}
 
             {isLoading && (
-              <div className="flex items-center gap-2 text-[#6B6B6B]">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Processing...</span>
+              <div className="flex items-center justify-center gap-3 py-8">
+                <div className="relative">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+                  <div className="absolute inset-0 bg-blue-400/20 rounded-full blur animate-pulse"></div>
+                </div>
+                <span className="text-blue-200/80 font-light">Processing your request...</span>
               </div>
             )}
             
@@ -121,9 +164,9 @@ const Chatbot = () => {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-[#E9E9E8] p-4">
+          <div className="border-t border-white/10 p-6 bg-white/5 backdrop-blur-sm">
             <div className="relative">
-              <div className="flex gap-3">
+              <div className="flex gap-4 items-end">
                 <div className="flex-1 relative">
                   <Input
                     value={inputValue}
@@ -133,9 +176,9 @@ const Chatbot = () => {
                     placeholder={
                       currentState === ChatState.EMAIL_COLLECTION 
                         ? "Enter your email address..." 
-                        : "Type your question..."
+                        : "Ask me anything about your booking..."
                     }
-                    className="border-[#E9E9E8] focus:border-[#2E95E5] focus:ring-[#2E95E5]"
+                    className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 rounded-2xl px-6 py-4 text-lg font-light focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
                     disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
                   />
                   
@@ -153,9 +196,9 @@ const Chatbot = () => {
                 <Button
                   onClick={handleSendMessage}
                   disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
-                  className="bg-[#2E95E5] hover:bg-[#2680C4] text-white"
+                  className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-4 shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-5 h-5" />
                 </Button>
               </div>
             </div>
