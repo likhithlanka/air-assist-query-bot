@@ -2,14 +2,13 @@ import { Transaction } from '@/types/chatbot';
 
 /**
  * Checks if a transaction meets the criteria for automatic refund initiation
- * Criteria: PNR generation failed, refund status is null/empty, payment is successful
+ * Criteria: PNR generation failed, refund status is null/empty
  */
 export const shouldInitiateRefund = (transaction: Transaction): boolean => {
   const hasPNRFailure = !transaction.pnr || transaction.pnr.trim() === '' || transaction.pnr.toLowerCase() === 'failed';
   const hasNoRefundStatus = !transaction.refund_status || transaction.refund_status.trim() === '';
-  const hasSuccessfulPayment = transaction.status && transaction.status.toLowerCase() === 'successful';
 
-  return hasPNRFailure && hasNoRefundStatus && hasSuccessfulPayment;
+  return hasPNRFailure && hasNoRefundStatus;
 };
 
 /**
@@ -49,7 +48,9 @@ export const createRefundInitiation = (transaction: Transaction, newRefundId: st
  * Generates a user-friendly message about the refund initiation
  */
 export const generateRefundInitiationMessage = (transaction: Transaction, refundId: string): string => {
-  return `I notice that your PNR generation failed for booking ${transaction.booking_id}, but your payment of $${transaction.total_amount_paid} was successful. I've automatically initiated a refund request for you.
+  return `We are initiating the refund.
+
+I notice that your PNR generation failed for booking ${transaction.booking_id}. We've automatically initiated a refund request for you.
 
 **Refund Details:**
 - Refund ID: ${refundId}
