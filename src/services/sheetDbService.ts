@@ -6,7 +6,7 @@ const SHEETDB_URL = 'https://sheetdb.io/api/v1/rmbktpz2h5o0j';
 class SheetDbService {
   async getTransactionsByEmail(email: string): Promise<Transaction[]> {
     try {
-      const response = await fetch(`${SHEETDB_URL}/search?email=${encodeURIComponent(email)}`);
+      const response = await fetch(`${SHEETDB_URL}/search?user_email=${encodeURIComponent(email)}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch transactions');
