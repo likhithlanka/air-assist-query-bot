@@ -1,4 +1,3 @@
-
 export interface Transaction {
   transaction_id: string;
   user_email: string;
@@ -60,4 +59,32 @@ export interface IntentCategory {
   category: string;
   keywords: string[];
   questions: QuerySuggestion[];
+}
+
+// Enhanced conversation memory interface
+export interface ConversationMemory {
+  lastIntent: string | null;
+  askedTopics: string[];
+  userPreferences: Record<string, any>;
+  contextData: Record<string, any>;
+  conversationHistory: string[];
+}
+
+// Enhanced question categories
+export enum QuestionCategory {
+  REFUND = 'refund',
+  FLIGHT = 'flight', 
+  BOOKING = 'booking',
+  PAYMENT = 'payment',
+  STATUS = 'status',
+  CONTACT = 'contact',
+  GENERAL = 'general'
+}
+
+// Context-aware response interface
+export interface ResponseContext {
+  category: QuestionCategory;
+  confidence: number;
+  contextualFactors: string[];
+  suggestedFollowUps: QuerySuggestion[];
 }

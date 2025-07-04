@@ -18,6 +18,7 @@ const Chatbot = () => {
     transactions,
     selectedTransaction,
     queryInput,
+    conversationMemory,
     setQueryInput,
     sendMessage,
     setEmail,
@@ -144,6 +145,8 @@ const Chatbot = () => {
                     onSuggestionClick={handleSuggestionClick}
                     isVisible={showSuggestions}
                     onClose={() => setShowSuggestions(false)}
+                    transaction={selectedTransaction || undefined}
+                    conversationMemory={conversationMemory}
                   />
                 </div>
                 

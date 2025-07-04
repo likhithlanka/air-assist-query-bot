@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { Message, Transaction, ChatState } from '@/types/chatbot';
+import { Message, Transaction, ChatState, ConversationMemory } from '@/types/chatbot';
 import { sheetDbService } from '@/services/sheetDbService';
 import { validateEmail } from '@/utils/validation';
 import { generateResponse } from '@/utils/responseGenerator';
@@ -20,6 +20,15 @@ export const useChatbot = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [queryInput, setQueryInput] = useState('');
+  
+  // Enhanced conversation memory
+  const [conversationMemory, setConversationMemory] = useState<ConversationMemory>({
+    lastIntent: null,
+    askedTopics: [],
+    userPreferences: {},
+    contextData: {},
+    conversationHistory: []
+  });
 
   const addMessage = useCallback((content: string, type: 'user' | 'bot') => {
     const newMessage: Message = {
@@ -75,14 +84,27 @@ export const useChatbot = () => {
     setIsLoading(true);
 
     try {
-      const response = generateResponse(query, selectedTransaction);
+      // Use enhanced response generation with conversation memory
+      const response = generateResponse(query, selectedTransaction, conversationMemory);
       addMessage(response, 'bot');
+      
+      // Update conversation memory state
+      setConversationMemory(prev => ({
+        ...prev,
+        contextData: {
+          ...prev.contextData,
+          lastQuery: query,
+          lastResponse: response,
+          queryTimestamp: new Date().toISOString()
+        }
+      }));
+      
     } catch (error) {
-      addMessage('I apologize, but I can only provide information about refund status, flight details, and booking details. For other queries, please contact our support team.', 'bot');
+      addMessage('I apologize, but I encountered an error processing your request. Please try again or contact our support team for assistance.', 'bot');
     } finally {
       setIsLoading(false);
     }
-  }, [selectedTransaction, addMessage]);
+  }, [selectedTransaction, addMessage, conversationMemory]);
 
   return {
     messages,
@@ -92,6 +114,7 @@ export const useChatbot = () => {
     transactions,
     selectedTransaction,
     queryInput,
+    conversationMemory,
     setQueryInput,
     sendMessage,
     setEmail,

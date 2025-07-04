@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { getQuerySuggestions } from '@/utils/responseGenerator';
+import { Transaction, ConversationMemory } from '@/types/chatbot';
 import { MessageSquare } from 'lucide-react';
 
 interface QuerySuggestionsProps {
@@ -8,6 +9,8 @@ interface QuerySuggestionsProps {
   onSuggestionClick: (suggestion: string) => void;
   isVisible: boolean;
   onClose: () => void;
+  transaction?: Transaction;
+  conversationMemory?: ConversationMemory;
 }
 
 interface QuerySuggestion {
@@ -21,19 +24,24 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   queryInput, 
   onSuggestionClick,
   isVisible,
-  onClose
+  onClose,
+  transaction,
+  conversationMemory
 }) => {
   const [suggestions, setSuggestions] = useState<QuerySuggestion[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (queryInput.trim()) {
-      const newSuggestions = getQuerySuggestions(queryInput);
+      // Use enhanced suggestions with transaction and memory context
+      const newSuggestions = getQuerySuggestions(queryInput, transaction, conversationMemory);
       setSuggestions(newSuggestions);
     } else {
-      setSuggestions([]);
+      // Show default suggestions when input is empty
+      const defaultSuggestions = getQuerySuggestions('', transaction, conversationMemory);
+      setSuggestions(defaultSuggestions);
     }
-  }, [queryInput]);
+  }, [queryInput, transaction, conversationMemory]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -75,7 +83,9 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
     refundStatus: 'Refund Information',
     flightDetails: 'Flight Details',
     bookingDetails: 'Booking Information',
-    paymentDetails: 'Payment Information'
+    paymentDetails: 'Payment Information',
+    statusInquiry: 'Status & Check-in',
+    contactSupport: 'Help & Support'
   };
 
   const handleSuggestionClick = (suggestion: string) => {
