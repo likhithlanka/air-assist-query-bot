@@ -113,7 +113,7 @@ const generateRefundStatusResponse = (transaction: Transaction): string => {
   
   return `Your refund status for booking ${transaction.booking_id} is: ${transaction.refund_status}
 Refund ID: ${transaction.refund_id}
-Amount: $${transaction.refund_amount}`;
+Amount: INR ${transaction.refund_amount}`;
 };
 
 const generateRefundTimingResponse = (transaction: Transaction): string => {
@@ -132,7 +132,7 @@ const generateRefundAmountResponse = (transaction: Transaction): string => {
     return `There is no refund initiated for your booking ${transaction.booking_id}. You are not currently eligible for a refund.`;
   }
   
-  return `You'll be refunded $${transaction.refund_amount} through ${transaction.refund_mode} for booking ${transaction.booking_id}.`;
+  return `You'll be refunded INR ${transaction.refund_amount} through ${transaction.refund_mode} for booking ${transaction.booking_id}.`;
 };
 
 const generateFlightDetailsResponse = (transaction: Transaction): string => {
@@ -157,7 +157,7 @@ const generateBookingDetailsResponse = (transaction: Transaction): string => {
 PNR: ${transaction.pnr}
 Passenger: ${transaction.passenger_name}
 Contact: ${transaction.contact_number}
-Total Amount Paid: $${transaction.total_amount_paid}
+Total Amount Paid: INR ${transaction.total_amount_paid}
 Add-ons: Baggage: ${transaction.baggage_addon}, WiFi: ${transaction.wifi_addon}
 Meal: ${transaction.meal_selected}
 Check-in Status: ${transaction.checkin_status}`;
@@ -172,8 +172,8 @@ const generateMealSelectionResponse = (transaction: Transaction): string => {
 };
 
 const generatePaymentAmountResponse = (transaction: Transaction): string => {
-  return `You paid a total of $${transaction.total_amount_paid} for booking ${transaction.booking_id}.
-Breakdown: Ticket Price: $${transaction.ticket_price}, Taxes: $${transaction.taxes}`;
+  return `You paid a total of INR ${transaction.total_amount_paid} for booking ${transaction.booking_id}.
+Breakdown: Ticket Price: INR ${transaction.ticket_price}, Taxes: INR ${transaction.taxes}`;
 };
 
 const generatePaymentMethodResponse = (transaction: Transaction): string => {
@@ -182,9 +182,9 @@ const generatePaymentMethodResponse = (transaction: Transaction): string => {
 
 const generatePaymentBreakdownResponse = (transaction: Transaction): string => {
   return `Payment Breakdown for booking ${transaction.booking_id}:
-Ticket Price: $${transaction.ticket_price}
-Taxes: $${transaction.taxes}
-Total Amount: $${transaction.total_amount_paid}
+Ticket Price: INR ${transaction.ticket_price}
+Taxes: INR ${transaction.taxes}
+Total Amount: INR ${transaction.total_amount_paid}
 Payment Method: ${transaction.payment_instrument} via ${transaction.payment_gateway}
 Payment Status: ${transaction.status}
 ${transaction.coupon_used ? `Coupon Used: ${transaction.coupon_used}` : 'No coupon used'}`;
@@ -200,7 +200,7 @@ const generateGenericRefundResponse = (transaction: Transaction): string => {
   const expectedDate = calculateExpectedRefundDate(transaction.refund_date, transaction.refund_mode);
   
   return `Your refund for booking ${transaction.booking_id} is ${transaction.refund_status}.
-Amount: $${transaction.refund_amount}
+Amount: INR ${transaction.refund_amount}
 Processing Date: ${transaction.refund_date}
 Expected completion: ${expectedDate} via ${transaction.refund_mode}`;
 };
