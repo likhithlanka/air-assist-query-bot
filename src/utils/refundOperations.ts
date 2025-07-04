@@ -65,7 +65,7 @@ export const generateRefundInitiationMessage = (transaction: Transaction, refund
 
 I notice that your PNR generation failed for booking ${transaction.booking_id}. We've automatically initiated a refund request for you.
 
-**Refund Details:**
+Refund Details:
 - Refund ID: ${refundId}
 - Amount: $${transaction.total_amount_paid}
 - Status: Initiated
