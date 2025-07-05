@@ -82,7 +82,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ transaction })
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 font-medium">Email:</span>
-              <span className="font-semibold">{transaction.email || 'Not provided'}</span>
+              <span className="font-semibold">{transaction.user_email || 'Not provided'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 font-medium">Frequent Flyer:</span>
@@ -96,11 +96,11 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ transaction })
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600 font-medium">Date:</span>
-              <span className="font-semibold">{transaction.booking_date}</span>
+              <span className="font-semibold">{transaction.date}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 font-medium">Class:</span>
-              <span className="font-semibold">{transaction.class || 'Economy'}</span>
+              <span className="font-semibold">{transaction.travel_class || 'Economy'}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 font-medium">Seat:</span>
@@ -108,7 +108,7 @@ export const PrintableTicket: React.FC<PrintableTicketProps> = ({ transaction })
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600 font-medium">Baggage:</span>
-              <span className="font-semibold">{transaction.baggage_allowance || '20kg'}</span>
+              <span className="font-semibold">{transaction.baggage_addon || '20kg'}</span>
             </div>
           </div>
         </div>

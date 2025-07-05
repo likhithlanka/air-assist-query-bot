@@ -201,7 +201,7 @@ const Chatbot = () => {
                         View Details
                       </Button>
                       <Button
-                        onClick={() => window.print()}
+                        onClick={handlePrintTicket}
                         size="sm"
                         className="bg-gradient-to-r from-white/10 to-white/20 hover:from-white/20 hover:to-white/30 border border-white/20 hover:border-white/40 text-white/80 hover:text-white text-sm px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
                       >
@@ -269,7 +269,7 @@ const Chatbot = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <Button
-                      onClick={() => window.print()}
+                      onClick={handlePrintTicket}
                       variant="outline"
                       size="sm"
                       className="bg-gradient-to-r from-white/10 to-white/20 border-white/20 text-blue-300 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/30 hover:text-white font-medium rounded-xl transition-all duration-200 hover:scale-105"

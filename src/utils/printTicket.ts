@@ -415,7 +415,7 @@ export const printTicketPDF = (transaction: Transaction) => {
             </div>
             <div class="detail-row">
               <span class="detail-label">Email:</span>
-              <span class="detail-value">${transaction.email || 'Not provided'}</span>
+              <span class="detail-value">${transaction.user_email || 'Not provided'}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Frequent Flyer:</span>
@@ -427,11 +427,11 @@ export const printTicketPDF = (transaction: Transaction) => {
             <h3 class="section-title">BOOKING DETAILS</h3>
             <div class="detail-row">
               <span class="detail-label">Date:</span>
-              <span class="detail-value">${transaction.booking_date}</span>
+              <span class="detail-value">${transaction.date}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Class:</span>
-              <span class="detail-value">${transaction.class || 'Economy'}</span>
+              <span class="detail-value">${transaction.travel_class || 'Economy'}</span>
             </div>
             <div class="detail-row">
               <span class="detail-label">Seat:</span>
@@ -439,7 +439,7 @@ export const printTicketPDF = (transaction: Transaction) => {
             </div>
             <div class="detail-row">
               <span class="detail-label">Baggage:</span>
-              <span class="detail-value">${transaction.baggage_allowance || '20kg'}</span>
+              <span class="detail-value">${transaction.baggage_addon || '20kg'}</span>
             </div>
           </div>
         </div>
