@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Plane, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Send, Plane, Eye, EyeOff, Loader2, Printer, X } from 'lucide-react';
 import { ChatMessage } from '@/components/chatbot/ChatMessage';
 import { TransactionList } from '@/components/chatbot/TransactionList';
 import { QuerySuggestions } from '@/components/chatbot/QuerySuggestions';
@@ -136,10 +136,9 @@ const Chatbot = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chat Container */}
-          <div className="lg:col-span-2">
-            <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="max-w-6xl mx-auto">
+          {/* Chat Container - Full Width */}
+          <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
               {/* Messages Area */}
               <div className="h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
                 {messages.map((message, index) => (
@@ -184,9 +183,41 @@ const Chatbot = () => {
                 </div>
               )}
 
-              {/* Input Area */}
-              <div className="border-t border-white/10 p-6 bg-white/5 backdrop-blur-sm">
-                <div className="flex gap-4 items-end">
+              {/* Input Area with Quick Actions */}
+              <div className="border-t border-white/10 p-4 bg-white/5 backdrop-blur-sm">
+                {/* Quick Actions for Selected Transaction */}
+                {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
+                  <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
+                    <div className="flex items-center gap-2 text-sm text-blue-200/70">
+                      <Plane className="w-4 h-4 text-blue-400" />
+                      <span className="font-bold">{selectedTransaction.flight_number}</span>
+                      <span>•</span>
+                      <span>{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</span>
+                    </div>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <Button
+                        onClick={toggleTicketDetails}
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/10 border-white/20 text-blue-300 hover:bg-white/20 hover:text-white font-bold text-xs px-3 py-2"
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        View Details
+                      </Button>
+                      <Button
+                        onClick={() => window.print()}
+                        variant="outline"
+                        size="sm"
+                        className="bg-white/10 border-white/20 text-blue-300 hover:bg-white/20 hover:text-white font-bold text-xs px-3 py-2"
+                      >
+                        <Printer className="w-3 h-3 mr-1" />
+                        Print
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
                   <div className="flex-1 relative">
                     <Input
                       value={inputValue}
@@ -213,57 +244,35 @@ const Chatbot = () => {
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Flight Ticket Details Panel */}
-          {selectedTransaction && (
-            <div className="lg:col-span-1">
-              <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-                {/* Panel Header */}
-                <div className="border-b border-white/10 p-4 bg-white/5 backdrop-blur-sm">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold text-white">Flight Details</h3>
+          {/* Flight Ticket Details Modal/Overlay - Only show when toggled */}
+          {selectedTransaction && showTicketDetails && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-slate-900 border border-white/20 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+                <div className="border-b border-white/10 p-4 bg-white/5 backdrop-blur-sm flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-white">Flight Ticket Details</h3>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => window.print()}
+                      variant="outline"
+                      size="sm"
+                      className="bg-white/10 border-white/20 text-blue-300 hover:bg-white/20 hover:text-white font-bold"
+                    >
+                      <Printer className="w-4 h-4 mr-2" />
+                      Print
+                    </Button>
                     <Button
                       onClick={toggleTicketDetails}
                       variant="ghost"
                       size="sm"
                       className="text-blue-400 hover:text-blue-300 hover:bg-white/10 font-bold"
                     >
-                      {showTicketDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      <X className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-
-                {/* Panel Content */}
-                <div className="h-[600px] overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
-                  {showTicketDetails ? (
-                    <FlightTicketDetails transaction={selectedTransaction} />
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Quick Summary */}
-                      <div className="backdrop-blur-sm bg-white/10 border border-white/20 rounded-2xl p-4">
-                        <div className="flex items-center gap-3 mb-3">
-                          <Plane className="w-5 h-5 text-blue-400" />
-                          <span className="font-bold text-white">{selectedTransaction.flight_number}</span>
-                        </div>
-                        <div className="text-sm text-blue-200/70 space-y-1 font-bold">
-                          <div>{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</div>
-                          <div>{selectedTransaction.date}</div>
-                          <div className="font-bold text-emerald-400">${selectedTransaction.total_amount_paid}</div>
-                        </div>
-                      </div>
-
-                      <div className="text-center py-8">
-                        <Button
-                          onClick={toggleTicketDetails}
-                          className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-3 font-bold"
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Complete Details
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+                  <FlightTicketDetails transaction={selectedTransaction} />
                 </div>
               </div>
             </div>
