@@ -1,7 +1,8 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Plane, Eye, EyeOff } from 'lucide-react';
+import { Send, Plane, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { ChatMessage } from '@/components/chatbot/ChatMessage';
 import { TransactionList } from '@/components/chatbot/TransactionList';
 import { QuerySuggestions } from '@/components/chatbot/QuerySuggestions';
