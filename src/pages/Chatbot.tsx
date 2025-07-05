@@ -170,22 +170,6 @@ const Chatbot = () => {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Suggestions Area - Above Input */}
-              {currentState === ChatState.QUERY_HANDLING && selectedTransaction && inputValue.trim() === '' && (
-                <div className="border-t border-white/10 p-4 bg-white/5 backdrop-blur-sm">
-                  <div className="mb-2">
-                    <span className="text-xs text-blue-200/60 font-medium">Quick questions:</span>
-                  </div>
-                  <QuerySuggestions 
-                    queryInput={inputValue}
-                    onSuggestionClick={handleSuggestionClick}
-                    isVisible={true}
-                    transaction={selectedTransaction}
-                    conversationMemory={conversationMemory}
-                  />
-                </div>
-              )}
-
               {/* Input Area with Quick Actions */}
               <div className="border-t border-white/10 p-4 bg-white/5 backdrop-blur-sm">
                 {/* Quick Actions for Selected Transaction */}
@@ -233,7 +217,7 @@ const Chatbot = () => {
                           ? "Enter your email address..." 
                           : "Ask me anything about your booking..."
                       }
-                      className="bg-gradient-to-r from-white/10 to-white/20 border-white/20 text-white placeholder:text-blue-200/60 placeholder:font-medium rounded-2xl px-6 py-4 text-base font-medium focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300 shadow-lg focus:shadow-blue-500/20"
+                      className="bg-slate-800/80 border-slate-600/50 text-white placeholder:text-slate-400 rounded-2xl px-6 py-4 text-base font-medium focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 backdrop-blur-sm transition-all duration-300 shadow-lg focus:shadow-blue-500/20 focus:bg-slate-700/80"
                       disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
                     />
                   </div>
@@ -246,6 +230,22 @@ const Chatbot = () => {
                     <Send className="w-5 h-5" />
                   </Button>
                 </div>
+
+                {/* Suggestions Area - Below Input */}
+                {currentState === ChatState.QUERY_HANDLING && selectedTransaction && inputValue.trim() === '' && (
+                  <div className="mt-4">
+                    <div className="mb-2">
+                      <span className="text-xs text-blue-200/60 font-medium">Quick questions:</span>
+                    </div>
+                    <QuerySuggestions 
+                      queryInput={inputValue}
+                      onSuggestionClick={handleSuggestionClick}
+                      isVisible={true}
+                      transaction={selectedTransaction}
+                      conversationMemory={conversationMemory}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
