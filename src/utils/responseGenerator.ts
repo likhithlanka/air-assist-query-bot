@@ -162,6 +162,16 @@ export const getQuerySuggestions = (
     // Show suggestions if there are keyword matches or if input is empty
     if (matchCount > 0 || inputLower === '') {
       config.questions.forEach(question => {
+        // Skip refund suggestions if transaction has no refund data
+        if (config.category === 'refundStatus' && transaction) {
+          const hasRefundData = transaction.refund_id && 
+                               transaction.refund_id.trim() !== '' && 
+                               transaction.refund_amount > 0;
+          if (!hasRefundData) {
+            return; // Skip this refund suggestion
+          }
+        }
+
         let priority = matchCount;
         
         // Boost priority based on conversation context

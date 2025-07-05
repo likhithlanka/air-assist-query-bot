@@ -42,69 +42,26 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
     return null;
   }
 
-  // Group suggestions by category and sort by priority
-  const groupedSuggestions = suggestions.reduce((acc, suggestion) => {
-    if (!acc[suggestion.category]) {
-      acc[suggestion.category] = [];
-    }
-    acc[suggestion.category].push(suggestion);
-    return acc;
-  }, {} as Record<string, QuerySuggestion[]>);
-
-  // Sort categories by highest priority
-  const sortedCategories = Object.entries(groupedSuggestions).sort(([, a], [, b]) => {
-    const avgPriorityA = a.reduce((sum, item) => sum + item.priority, 0) / a.length;
-    const avgPriorityB = b.reduce((sum, item) => sum + item.priority, 0) / b.length;
-    return avgPriorityB - avgPriorityA;
-  });
-
-  const categoryLabels = {
-    refundStatus: 'Refund Information',
-    flightDetails: 'Flight Details',
-    bookingDetails: 'Booking Information',
-    paymentDetails: 'Payment Information',
-    statusInquiry: 'Status & Check-in',
-    contactSupport: 'Help & Support'
-  };
-
   const handleSuggestionClick = (suggestion: string) => {
     onSuggestionClick(suggestion);
   };
 
   return (
-    <div className="animate-fade-in mb-4">
-      <div className="backdrop-blur-xl bg-white/5 rounded-2xl border border-white/10 shadow-lg overflow-hidden">
-        <div className="px-4 py-3 border-b border-white/10 bg-white/5">
-          <h3 className="text-sm font-bold text-blue-200/80 uppercase tracking-wide">
-            Suggested Questions
-          </h3>
-        </div>
-        
-        <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
-          {sortedCategories.map(([category, categorySuggestions]) => (
-            <div key={category} className="border-b border-white/5 last:border-b-0">
-              {/* Category Header */}
-              <div className="px-4 py-2 text-xs font-bold text-blue-300/70 bg-white/5">
-                {categoryLabels[category as keyof typeof categoryLabels]}
-              </div>
-              
-              {/* Suggestions */}
-              <div className="py-1">
-                {categorySuggestions.slice(0, 3).map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion.display)}
-                    className="w-full text-left group px-4 py-3 hover:bg-white/10 transition-colors duration-150 flex items-center justify-between"
-                  >
-                    <span className="text-white text-sm leading-relaxed pr-3 font-bold">
-                      {suggestion.display}
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-blue-300/50 opacity-0 group-hover:opacity-100 group-hover:text-blue-300 transition-all duration-150 flex-shrink-0" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+    <div className="animate-fade-in mb-3">
+      <div className="bg-gradient-to-r from-white/5 to-white/10 rounded-2xl border border-white/10 shadow-lg backdrop-blur-sm overflow-hidden">
+        <div className="p-4">
+          <div className="flex flex-wrap gap-2">
+            {suggestions.slice(0, 6).map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => handleSuggestionClick(suggestion.display)}
+                className="group inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 border border-blue-400/20 hover:border-blue-400/40 rounded-full text-white text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg shadow-blue-500/20"
+              >
+                <span className="leading-none">{suggestion.display}</span>
+                <ChevronRight className="w-3.5 h-3.5 text-blue-300/70 group-hover:text-blue-300 group-hover:translate-x-0.5 transition-all duration-200" />
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

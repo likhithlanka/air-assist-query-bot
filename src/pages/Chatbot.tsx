@@ -171,12 +171,15 @@ const Chatbot = () => {
               </div>
 
               {/* Suggestions Area - Above Input */}
-              {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
-                <div className="border-t border-white/10 p-6 bg-white/5 backdrop-blur-sm">
+              {currentState === ChatState.QUERY_HANDLING && selectedTransaction && inputValue.trim() === '' && (
+                <div className="border-t border-white/10 p-4 bg-white/5 backdrop-blur-sm">
+                  <div className="mb-2">
+                    <span className="text-xs text-blue-200/60 font-medium">Quick questions:</span>
+                  </div>
                   <QuerySuggestions 
                     queryInput={inputValue}
                     onSuggestionClick={handleSuggestionClick}
-                    isVisible={showSuggestions}
+                    isVisible={true}
                     transaction={selectedTransaction}
                     conversationMemory={conversationMemory}
                   />
@@ -187,37 +190,38 @@ const Chatbot = () => {
               <div className="border-t border-white/10 p-4 bg-white/5 backdrop-blur-sm">
                 {/* Quick Actions for Selected Transaction */}
                 {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
-                  <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
-                    <div className="flex items-center gap-2 text-sm text-blue-200/70">
-                      <Plane className="w-4 h-4 text-blue-400" />
-                      <span className="font-bold">{selectedTransaction.flight_number}</span>
-                      <span>•</span>
-                      <span>{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</span>
+                  <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl border border-white/10 backdrop-blur-sm shadow-lg">
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-blue-400/20">
+                        <Plane className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <div>
+                        <div className="font-bold text-white text-base">{selectedTransaction.flight_number}</div>
+                        <div className="text-sm text-blue-200/80 font-medium">{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex items-center gap-3">
                       <Button
                         onClick={toggleTicketDetails}
-                        variant="outline"
                         size="sm"
-                        className="bg-white/10 border-white/20 text-blue-300 hover:bg-white/20 hover:text-white font-bold text-xs px-3 py-2"
+                        className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 hover:from-blue-500/30 hover:to-cyan-500/30 border border-blue-400/20 hover:border-blue-400/40 text-blue-300 hover:text-white text-sm px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-blue-500/20"
                       >
-                        <Eye className="w-3 h-3 mr-1" />
+                        <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </Button>
                       <Button
                         onClick={() => window.print()}
-                        variant="outline"
                         size="sm"
-                        className="bg-white/10 border-white/20 text-blue-300 hover:bg-white/20 hover:text-white font-bold text-xs px-3 py-2"
+                        className="bg-gradient-to-r from-white/10 to-white/20 hover:from-white/20 hover:to-white/30 border border-white/20 hover:border-white/40 text-white/80 hover:text-white text-sm px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
                       >
-                        <Printer className="w-3 h-3 mr-1" />
+                        <Printer className="w-4 h-4 mr-2" />
                         Print
                       </Button>
                     </div>
                   </div>
                 )}
 
-                <div className="flex gap-3">
+                <div className="flex gap-4">
                   <div className="flex-1 relative">
                     <Input
                       value={inputValue}
@@ -229,7 +233,7 @@ const Chatbot = () => {
                           ? "Enter your email address..." 
                           : "Ask me anything about your booking..."
                       }
-                      className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 placeholder:font-bold rounded-2xl px-6 py-4 text-base font-bold focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
+                      className="bg-gradient-to-r from-white/10 to-white/20 border-white/20 text-white placeholder:text-blue-200/60 placeholder:font-medium rounded-2xl px-6 py-4 text-base font-medium focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300 shadow-lg focus:shadow-blue-500/20"
                       disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
                     />
                   </div>
@@ -237,7 +241,7 @@ const Chatbot = () => {
                   <Button
                     onClick={handleSendMessage}
                     disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
-                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-4 shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none font-bold"
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-8 py-4 shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none font-bold hover:shadow-blue-500/30"
                   >
                     <Send className="w-5 h-5" />
                   </Button>
@@ -247,16 +251,21 @@ const Chatbot = () => {
 
           {/* Flight Ticket Details Modal/Overlay - Only show when toggled */}
           {selectedTransaction && showTicketDetails && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-slate-900 border border-white/20 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-                <div className="border-b border-white/10 p-4 bg-white/5 backdrop-blur-sm flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-white">Flight Ticket Details</h3>
-                  <div className="flex items-center gap-2">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/20 rounded-3xl max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-2xl animate-scale-in">
+                <div className="border-b border-white/10 p-5 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center">
+                      <Plane className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white">Ticket Details</h3>
+                  </div>
+                  <div className="flex items-center gap-3">
                     <Button
                       onClick={() => window.print()}
                       variant="outline"
                       size="sm"
-                      className="bg-white/10 border-white/20 text-blue-300 hover:bg-white/20 hover:text-white font-bold"
+                      className="bg-gradient-to-r from-white/10 to-white/20 border-white/20 text-blue-300 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/30 hover:text-white font-medium rounded-xl transition-all duration-200 hover:scale-105"
                     >
                       <Printer className="w-4 h-4 mr-2" />
                       Print
@@ -265,13 +274,13 @@ const Chatbot = () => {
                       onClick={toggleTicketDetails}
                       variant="ghost"
                       size="sm"
-                      className="text-blue-400 hover:text-blue-300 hover:bg-white/10 font-bold"
+                      className="text-blue-400 hover:text-blue-300 hover:bg-white/10 font-medium rounded-xl transition-all duration-200 hover:scale-105"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-5 h-5" />
                     </Button>
                   </div>
                 </div>
-                <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6">
+                <div className="overflow-y-auto max-h-[calc(95vh-100px)] p-6 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                   <FlightTicketDetails transaction={selectedTransaction} />
                 </div>
               </div>
