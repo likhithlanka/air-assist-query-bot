@@ -9,6 +9,7 @@ import { QuerySuggestions } from '@/components/chatbot/QuerySuggestions';
 import { FlightTicketDetails } from '@/components/chatbot/FlightTicketDetails';
 import { useChatbot } from '@/hooks/useChatbot';
 import { ChatState } from '@/types/chatbot';
+import { printTicketPDF } from '@/utils/printTicket';
 
 const Chatbot = () => {
   const {
@@ -85,6 +86,12 @@ const Chatbot = () => {
 
   const toggleTicketDetails = () => {
     setShowTicketDetails(!showTicketDetails);
+  };
+
+  const handlePrintTicket = () => {
+    if (selectedTransaction) {
+      printTicketPDF(selectedTransaction);
+    }
   };
 
   return (
