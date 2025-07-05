@@ -73,7 +73,7 @@ const Chatbot = () => {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setInputValue(suggestion);
+    setInputValue(''); // Clear the input box
     setShowSuggestions(false);
     handleQuery(suggestion);
   };
