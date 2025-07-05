@@ -239,10 +239,12 @@ const Chatbot = () => {
                 </div>
 
                 {/* Suggestions Area - Below Input */}
-                {currentState === ChatState.QUERY_HANDLING && selectedTransaction && inputValue.trim() === '' && (
+                {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
                   <div className="mt-4">
                     <div className="mb-2">
-                      <span className="text-xs text-blue-200/60 font-medium">Quick questions:</span>
+                      <span className="text-xs text-blue-200/60 font-medium">
+                        {inputValue.trim() === '' ? 'Quick questions:' : 'Suggested questions:'}
+                      </span>
                     </div>
                     <QuerySuggestions 
                       queryInput={inputValue}

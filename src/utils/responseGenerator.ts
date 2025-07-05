@@ -20,7 +20,7 @@ import {
 const intentKeywords = {
   refund: {
     category: 'refundStatus',
-    keywords: ['refund', 'money', 'return', 'payment back', 'refunded', 'reimbursement', 'cancel', 'cancellation'],
+    keywords: ['refund', 'money', 'return', 'payment back', 'refunded', 'reimbursement', 'cancel', 'cancellation', 'money back', 'get back', 'reimburse', 'cash back'],
     questions: [
       {
         display: "What's my refund status?",
@@ -42,7 +42,7 @@ const intentKeywords = {
   },
   flight: {
     category: 'flightDetails',
-    keywords: ['flight', 'departure', 'arrival', 'plane', 'time', 'airport', 'gate', 'terminal'],
+    keywords: ['flight', 'departure', 'arrival', 'plane', 'time', 'airport', 'gate', 'terminal', 'fly', 'flying', 'depart', 'arrive', 'schedule'],
     questions: [
       {
         display: "What are my flight details?",
@@ -64,7 +64,7 @@ const intentKeywords = {
   },
   booking: {
     category: 'bookingDetails',
-    keywords: ['booking', 'reservation', 'seat', 'ticket', 'meal', 'addon', 'pnr', 'confirmation'],
+    keywords: ['booking', 'reservation', 'seat', 'ticket', 'meal', 'addon', 'pnr', 'confirmation', 'book', 'reserved', 'confirm'],
     questions: [
       {
         display: "Show my booking details",
@@ -86,7 +86,7 @@ const intentKeywords = {
   },
   payment: {
     category: 'paymentDetails',
-    keywords: ['payment', 'paid', 'cost', 'price', 'amount', 'total', 'bill', 'invoice'],
+    keywords: ['payment', 'paid', 'cost', 'price', 'amount', 'total', 'bill', 'invoice', 'pay', 'charge', 'fee'],
     questions: [
       {
         display: "How much did I pay?",
@@ -146,21 +146,32 @@ export const getQuerySuggestions = (
   transaction?: Transaction, 
   memory?: ConversationMemory
 ) => {
-  const inputLower = input.toLowerCase();
+  const inputLower = input.toLowerCase().trim();
   const suggestions: { display: string; intent: string; category: string; priority: number }[] = [];
   
   // Calculate keyword match count for each category
   const categoryPriorities: Record<string, number> = {};
   
   Object.entries(intentKeywords).forEach(([intent, config]) => {
-    const matchCount = config.keywords.filter(keyword => 
-      inputLower.includes(keyword) || keyword.includes(inputLower)
-    ).length;
+    const matchCount = config.keywords.filter(keyword => {
+      // More flexible keyword matching
+      const keywordLower = keyword.toLowerCase();
+      return inputLower.includes(keywordLower) || 
+             keywordLower.includes(inputLower) ||
+             // Check for partial matches (at least 3 characters)
+             (inputLower.length >= 3 && keywordLower.includes(inputLower)) ||
+             (inputLower.length >= 3 && inputLower.includes(keywordLower));
+    }).length;
     
     categoryPriorities[config.category] = matchCount;
     
+    // Debug logging
+    if (inputLower.length > 0) {
+      console.log(`Intent: ${intent}, Input: "${inputLower}", Matches: ${matchCount}, Keywords: ${config.keywords.join(', ')}`);
+    }
+    
     // Show suggestions if there are keyword matches or if input is empty
-    if (matchCount > 0 || inputLower === '') {
+    if (matchCount > 0 || inputLower.trim() === '') {
       config.questions.forEach(question => {
         // Skip refund suggestions if transaction has no refund data
         if (config.category === 'refundStatus' && transaction) {
@@ -202,9 +213,16 @@ export const getQuerySuggestions = (
   });
   
   // Sort by priority and return top suggestions
-  return suggestions
+  const finalSuggestions = suggestions
     .sort((a, b) => b.priority - a.priority)
     .slice(0, 6); // Show top 6 suggestions
+    
+  // Debug logging
+  if (inputLower.length > 0) {
+    console.log(`Final suggestions for "${inputLower}":`, finalSuggestions.map(s => `${s.display} (priority: ${s.priority})`));
+  }
+  
+  return finalSuggestions;
 };
 
 // Contextual priority calculation based on transaction data

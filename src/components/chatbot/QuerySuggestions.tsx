@@ -29,13 +29,8 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   const [suggestions, setSuggestions] = useState<QuerySuggestion[]>([]);
 
   useEffect(() => {
-    if (queryInput.trim()) {
-      const newSuggestions = getQuerySuggestions(queryInput, transaction, conversationMemory);
-      setSuggestions(newSuggestions);
-    } else {
-      const defaultSuggestions = getQuerySuggestions('', transaction, conversationMemory);
-      setSuggestions(defaultSuggestions);
-    }
+    const newSuggestions = getQuerySuggestions(queryInput, transaction, conversationMemory);
+    setSuggestions(newSuggestions);
   }, [queryInput, transaction, conversationMemory]);
 
   if (!isVisible || suggestions.length === 0) {
