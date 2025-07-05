@@ -171,6 +171,19 @@ const Chatbot = () => {
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* Suggestions Area - Above Input */}
+              {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
+                <div className="border-t border-white/10 p-6 bg-white/5 backdrop-blur-sm">
+                  <QuerySuggestions 
+                    queryInput={inputValue}
+                    onSuggestionClick={handleSuggestionClick}
+                    isVisible={showSuggestions}
+                    transaction={selectedTransaction}
+                    conversationMemory={conversationMemory}
+                  />
+                </div>
+              )}
+
               {/* Input Area */}
               <div className="border-t border-white/10 p-6 bg-white/5 backdrop-blur-sm">
                 <div className="flex gap-4 items-end">
@@ -187,16 +200,6 @@ const Chatbot = () => {
                       }
                       className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 placeholder:font-bold rounded-2xl px-6 py-4 text-base font-bold focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
                       disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
-                    />
-                    
-                    {/* Query Suggestions Dropdown */}
-                    <QuerySuggestions 
-                      queryInput={inputValue}
-                      onSuggestionClick={handleSuggestionClick}
-                      isVisible={showSuggestions}
-                      onClose={() => setShowSuggestions(false)}
-                      transaction={selectedTransaction || undefined}
-                      conversationMemory={conversationMemory}
                     />
                   </div>
                   

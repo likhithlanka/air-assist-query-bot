@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getQuerySuggestions } from '@/utils/responseGenerator';
 import { Transaction, ConversationMemory } from '@/types/chatbot';
 import { ChevronRight } from 'lucide-react';
@@ -8,7 +8,6 @@ interface QuerySuggestionsProps {
   queryInput: string;
   onSuggestionClick: (suggestion: string) => void;
   isVisible: boolean;
-  onClose: () => void;
   transaction?: Transaction;
   conversationMemory?: ConversationMemory;
 }
@@ -24,12 +23,10 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   queryInput, 
   onSuggestionClick,
   isVisible,
-  onClose,
   transaction,
   conversationMemory
 }) => {
   const [suggestions, setSuggestions] = useState<QuerySuggestion[]>([]);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (queryInput.trim()) {
@@ -40,22 +37,6 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
       setSuggestions(defaultSuggestions);
     }
   }, [queryInput, transaction, conversationMemory]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        onClose();
-      }
-    };
-
-    if (isVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isVisible, onClose]);
 
   if (!isVisible || suggestions.length === 0) {
     return null;
@@ -88,39 +69,43 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
 
   const handleSuggestionClick = (suggestion: string) => {
     onSuggestionClick(suggestion);
-    onClose();
   };
 
   return (
-    <div 
-      ref={dropdownRef}
-      className="absolute top-full left-0 right-0 mt-2 z-50 animate-fade-in"
-    >
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm max-h-80 overflow-y-auto">
-        {sortedCategories.map(([category, categorySuggestions]) => (
-          <div key={category} className="border-b border-gray-100 last:border-b-0">
-            {/* Category Header - Notion style */}
-            <div className="px-3 py-2 text-xs font-bold text-gray-600 bg-gray-50/30 border-b border-gray-100">
-              {categoryLabels[category as keyof typeof categoryLabels]}
+    <div className="animate-fade-in mb-4">
+      <div className="backdrop-blur-xl bg-white/5 rounded-2xl border border-white/10 shadow-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-white/10 bg-white/5">
+          <h3 className="text-sm font-bold text-blue-200/80 uppercase tracking-wide">
+            Suggested Questions
+          </h3>
+        </div>
+        
+        <div className="max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
+          {sortedCategories.map(([category, categorySuggestions]) => (
+            <div key={category} className="border-b border-white/5 last:border-b-0">
+              {/* Category Header */}
+              <div className="px-4 py-2 text-xs font-bold text-blue-300/70 bg-white/5">
+                {categoryLabels[category as keyof typeof categoryLabels]}
+              </div>
+              
+              {/* Suggestions */}
+              <div className="py-1">
+                {categorySuggestions.slice(0, 3).map((suggestion, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSuggestionClick(suggestion.display)}
+                    className="w-full text-left group px-4 py-3 hover:bg-white/10 transition-colors duration-150 flex items-center justify-between"
+                  >
+                    <span className="text-white text-sm leading-relaxed pr-3 font-bold">
+                      {suggestion.display}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-blue-300/50 opacity-0 group-hover:opacity-100 group-hover:text-blue-300 transition-all duration-150 flex-shrink-0" />
+                  </button>
+                ))}
+              </div>
             </div>
-            
-            {/* Suggestions */}
-            <div className="py-1">
-              {categorySuggestions.slice(0, 3).map((suggestion, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSuggestionClick(suggestion.display)}
-                  className="w-full text-left group px-3 py-2.5 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between"
-                >
-                  <span className="text-gray-800 text-sm leading-relaxed pr-3 font-bold">
-                    {suggestion.display}
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-gray-400 transition-all duration-150 flex-shrink-0" />
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
