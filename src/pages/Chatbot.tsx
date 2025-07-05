@@ -1,8 +1,7 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Bot, User, Loader2, Plane, Eye, EyeOff } from 'lucide-react';
+import { Send, Plane, Eye, EyeOff } from 'lucide-react';
 import { ChatMessage } from '@/components/chatbot/ChatMessage';
 import { TransactionList } from '@/components/chatbot/TransactionList';
 import { QuerySuggestions } from '@/components/chatbot/QuerySuggestions';
@@ -173,42 +172,40 @@ const Chatbot = () => {
 
               {/* Input Area */}
               <div className="border-t border-white/10 p-6 bg-white/5 backdrop-blur-sm">
-                <div className="relative">
-                  <div className="flex gap-4 items-end">
-                    <div className="flex-1 relative">
-                      <Input
-                        value={inputValue}
-                        onChange={handleInputChange}
-                        onKeyPress={handleKeyPress}
-                        onFocus={handleInputFocus}
-                        placeholder={
-                          currentState === ChatState.EMAIL_COLLECTION 
-                            ? "Enter your email address..." 
-                            : "Ask me anything about your booking..."
-                        }
-                        className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 rounded-2xl px-6 py-4 text-base font-light focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
-                        disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
-                      />
-                      
-                      {/* Query Suggestions Dropdown */}
-                      <QuerySuggestions 
-                        queryInput={inputValue}
-                        onSuggestionClick={handleSuggestionClick}
-                        isVisible={showSuggestions}
-                        onClose={() => setShowSuggestions(false)}
-                        transaction={selectedTransaction || undefined}
-                        conversationMemory={conversationMemory}
-                      />
-                    </div>
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1 relative">
+                    <Input
+                      value={inputValue}
+                      onChange={handleInputChange}
+                      onKeyPress={handleKeyPress}
+                      onFocus={handleInputFocus}
+                      placeholder={
+                        currentState === ChatState.EMAIL_COLLECTION 
+                          ? "Enter your email address..." 
+                          : "Ask me anything about your booking..."
+                      }
+                      className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 rounded-2xl px-6 py-4 text-base font-light focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
+                      disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
+                    />
                     
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
-                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-4 shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
-                    >
-                      <Send className="w-5 h-5" />
-                    </Button>
+                    {/* Query Suggestions Dropdown */}
+                    <QuerySuggestions 
+                      queryInput={inputValue}
+                      onSuggestionClick={handleSuggestionClick}
+                      isVisible={showSuggestions}
+                      onClose={() => setShowSuggestions(false)}
+                      transaction={selectedTransaction || undefined}
+                      conversationMemory={conversationMemory}
+                    />
                   </div>
+                  
+                  <Button
+                    onClick={handleSendMessage}
+                    disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-4 shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                  >
+                    <Send className="w-5 h-5" />
+                  </Button>
                 </div>
               </div>
             </div>
