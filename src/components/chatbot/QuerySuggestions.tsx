@@ -94,13 +94,13 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   return (
     <div 
       ref={dropdownRef}
-      className="absolute bottom-full left-0 right-0 mb-2 z-50 animate-fade-in"
+      className="absolute top-full left-0 right-0 mt-2 z-50 animate-fade-in"
     >
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm max-h-80 overflow-y-auto">
         {sortedCategories.map(([category, categorySuggestions]) => (
           <div key={category} className="border-b border-gray-100 last:border-b-0">
             {/* Category Header - Notion style */}
-            <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50/30 border-b border-gray-100">
+            <div className="px-3 py-2 text-xs font-bold text-gray-600 bg-gray-50/30 border-b border-gray-100">
               {categoryLabels[category as keyof typeof categoryLabels]}
             </div>
             
@@ -112,7 +112,7 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
                   onClick={() => handleSuggestionClick(suggestion.display)}
                   className="w-full text-left group px-3 py-2.5 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between"
                 >
-                  <span className="text-gray-700 text-sm leading-relaxed pr-3 font-normal">
+                  <span className="text-gray-800 text-sm leading-relaxed pr-3 font-bold">
                     {suggestion.display}
                   </span>
                   <ChevronRight className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-gray-400 transition-all duration-150 flex-shrink-0" />

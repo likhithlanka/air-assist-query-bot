@@ -13,7 +13,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-1 h-6 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full"></div>
-        <h3 className="text-lg font-medium text-white/90">Your Bookings</h3>
+        <h3 className="text-lg font-bold text-white/90">Your Bookings</h3>
       </div>
       
       {transactions.map((transaction) => (
@@ -34,12 +34,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
                   <div className="absolute -inset-1 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl blur opacity-30 group-hover:opacity-50 transition-opacity"></div>
                 </div>
                 <div>
-                  <span className="font-semibold text-white text-lg">{transaction.flight_number}</span>
-                  <p className="text-blue-200/70 text-sm font-light">Flight</p>
+                  <span className="font-bold text-white text-lg">{transaction.flight_number}</span>
+                  <p className="text-blue-200/70 text-sm font-bold">Flight</p>
                 </div>
               </div>
               
-              <div className={`px-3 py-1 rounded-full text-xs font-medium border ${
+              <div className={`px-3 py-1 rounded-full text-xs font-bold border ${
                 transaction.status === 'Confirmed' 
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
                   : 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30'
@@ -52,7 +52,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
             <div className="flex items-center gap-4 mb-4 p-3 rounded-xl bg-white/5 border border-white/10">
               <div className="flex items-center gap-2 text-white/80">
                 <MapPin className="w-4 h-4 text-blue-400" />
-                <span className="font-medium">{transaction.departure_airport}</span>
+                <span className="font-bold">{transaction.departure_airport}</span>
               </div>
               
               <div className="flex-1 relative">
@@ -61,7 +61,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
               </div>
               
               <div className="flex items-center gap-2 text-white/80">
-                <span className="font-medium">{transaction.arrival_airport}</span>
+                <span className="font-bold">{transaction.arrival_airport}</span>
                 <MapPin className="w-4 h-4 text-cyan-400" />
               </div>
             </div>
@@ -70,11 +70,11 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="w-4 h-4 text-purple-400" />
-                <span className="text-white/70">{transaction.date}</span>
+                <span className="text-white/70 font-bold">{transaction.date}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <DollarSign className="w-4 h-4 text-emerald-400" />
-                <span className="text-white/70">${transaction.total_amount_paid}</span>
+                <span className="text-white/70 font-bold">${transaction.total_amount_paid}</span>
               </div>
             </div>
             
@@ -82,13 +82,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({ transactions, 
             <div className="flex items-center justify-between pt-4 border-t border-white/10">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-3 h-3 text-blue-400/60" />
-                <span className="text-xs text-blue-200/60 font-medium">
+                <span className="text-xs text-blue-200/60 font-bold">
                   {transaction.booking_id}
                 </span>
               </div>
               
               <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <span className="text-xs text-blue-400 font-medium flex items-center gap-1">
+                <span className="text-xs text-blue-400 font-bold flex items-center gap-1">
                   Select booking
                   <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></div>
                 </span>

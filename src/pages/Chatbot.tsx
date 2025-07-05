@@ -126,10 +126,10 @@ const Chatbot = () => {
               <div className="absolute -inset-1 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-2xl blur opacity-30 animate-pulse"></div>
             </div>
             <div>
-              <h1 className="text-3xl font-light text-white mb-2 tracking-wide">
+              <h1 className="text-3xl font-bold text-white mb-2 tracking-wide">
                 Flight Assistant
               </h1>
-              <p className="text-blue-200/80 text-sm font-light">
+              <p className="text-blue-200/80 text-sm font-bold">
                 Your intelligent travel companion
               </p>
             </div>
@@ -164,7 +164,7 @@ const Chatbot = () => {
                       <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
                       <div className="absolute inset-0 bg-blue-400/20 rounded-full blur animate-pulse"></div>
                     </div>
-                    <span className="text-blue-200/80 font-light">Processing your request...</span>
+                    <span className="text-blue-200/80 font-bold">Processing your request...</span>
                   </div>
                 )}
                 
@@ -185,7 +185,7 @@ const Chatbot = () => {
                           ? "Enter your email address..." 
                           : "Ask me anything about your booking..."
                       }
-                      className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 rounded-2xl px-6 py-4 text-base font-light focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
+                      className="bg-white/10 border-white/20 text-white placeholder:text-blue-200/60 placeholder:font-bold rounded-2xl px-6 py-4 text-base font-bold focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 backdrop-blur-sm transition-all duration-300"
                       disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
                     />
                     
@@ -203,7 +203,7 @@ const Chatbot = () => {
                   <Button
                     onClick={handleSendMessage}
                     disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
-                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-4 shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-4 shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none font-bold"
                   >
                     <Send className="w-5 h-5" />
                   </Button>
@@ -219,12 +219,12 @@ const Chatbot = () => {
                 {/* Panel Header */}
                 <div className="border-b border-white/10 p-4 bg-white/5 backdrop-blur-sm">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-medium text-white">Flight Details</h3>
+                    <h3 className="text-lg font-bold text-white">Flight Details</h3>
                     <Button
                       onClick={toggleTicketDetails}
                       variant="ghost"
                       size="sm"
-                      className="text-blue-400 hover:text-blue-300 hover:bg-white/10"
+                      className="text-blue-400 hover:text-blue-300 hover:bg-white/10 font-bold"
                     >
                       {showTicketDetails ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </Button>
@@ -241,19 +241,19 @@ const Chatbot = () => {
                       <div className="backdrop-blur-sm bg-white/10 border border-white/20 rounded-2xl p-4">
                         <div className="flex items-center gap-3 mb-3">
                           <Plane className="w-5 h-5 text-blue-400" />
-                          <span className="font-semibold text-white">{selectedTransaction.flight_number}</span>
+                          <span className="font-bold text-white">{selectedTransaction.flight_number}</span>
                         </div>
-                        <div className="text-sm text-blue-200/70 space-y-1">
+                        <div className="text-sm text-blue-200/70 space-y-1 font-bold">
                           <div>{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</div>
                           <div>{selectedTransaction.date}</div>
-                          <div className="font-medium text-emerald-400">${selectedTransaction.total_amount_paid}</div>
+                          <div className="font-bold text-emerald-400">${selectedTransaction.total_amount_paid}</div>
                         </div>
                       </div>
 
                       <div className="text-center py-8">
                         <Button
                           onClick={toggleTicketDetails}
-                          className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-3"
+                          className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-6 py-3 font-bold"
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           View Complete Details

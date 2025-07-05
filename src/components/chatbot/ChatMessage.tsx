@@ -55,7 +55,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           {isBot && messageIcon && (
             <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
               {messageIcon}
-              <span className="text-xs font-medium text-blue-200/80 uppercase tracking-wide">
+              <span className="text-xs font-bold text-blue-200/80 uppercase tracking-wide">
                 {message.content.includes('refund') ? 'Refund Info' :
                  message.content.includes('flight') ? 'Flight Details' :
                  message.content.includes('booking') ? 'Booking Info' :
@@ -64,7 +64,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             </div>
           )}
           
-          <p className="whitespace-pre-wrap leading-relaxed font-light">
+          <p className="whitespace-pre-wrap leading-relaxed font-bold">
             {message.content}
           </p>
           
@@ -74,7 +74,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
           }`}></div>
         </div>
         
-        <div className={`text-xs ${isBot ? 'text-blue-200/60' : 'text-blue-200/60'} flex items-center gap-2 px-2`}>
+        <div className={`text-xs ${isBot ? 'text-blue-200/60' : 'text-blue-200/60'} flex items-center gap-2 px-2 font-bold`}>
           <Clock className="w-3 h-3" />
           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
