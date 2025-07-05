@@ -96,33 +96,31 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
       ref={dropdownRef}
       className="absolute bottom-full left-0 right-0 mb-2 z-50 animate-fade-in"
     >
-      <div className="bg-white/95 backdrop-blur-sm border border-gray-200/80 rounded-xl shadow-lg max-h-80 overflow-y-auto">
-        <div className="p-1">
-          {sortedCategories.map(([category, categorySuggestions]) => (
-            <div key={category} className="mb-1 last:mb-0">
-              {/* Category Header */}
-              <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-100/50 bg-gray-50/30">
-                {categoryLabels[category as keyof typeof categoryLabels]}
-              </div>
-              
-              {/* Suggestions */}
-              <div className="py-1">
-                {categorySuggestions.slice(0, 3).map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSuggestionClick(suggestion.display)}
-                    className="w-full text-left group px-4 py-3 hover:bg-gray-50/50 transition-all duration-200 flex items-center justify-between border-l-2 border-transparent hover:border-blue-400/30"
-                  >
-                    <span className="text-gray-700 text-sm leading-relaxed pr-2 font-light">
-                      {suggestion.display}
-                    </span>
-                    <ChevronRight className="w-4 h-4 text-gray-400/60 opacity-0 group-hover:opacity-100 transition-all duration-200 flex-shrink-0 transform group-hover:translate-x-1" />
-                  </button>
-                ))}
-              </div>
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm max-h-80 overflow-y-auto">
+        {sortedCategories.map(([category, categorySuggestions]) => (
+          <div key={category} className="border-b border-gray-100 last:border-b-0">
+            {/* Category Header - Notion style */}
+            <div className="px-3 py-2 text-xs font-medium text-gray-500 bg-gray-50/30 border-b border-gray-100">
+              {categoryLabels[category as keyof typeof categoryLabels]}
             </div>
-          ))}
-        </div>
+            
+            {/* Suggestions */}
+            <div className="py-1">
+              {categorySuggestions.slice(0, 3).map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionClick(suggestion.display)}
+                  className="w-full text-left group px-3 py-2.5 hover:bg-gray-50 transition-colors duration-150 flex items-center justify-between"
+                >
+                  <span className="text-gray-700 text-sm leading-relaxed pr-3 font-normal">
+                    {suggestion.display}
+                  </span>
+                  <ChevronRight className="w-4 h-4 text-gray-300 opacity-0 group-hover:opacity-100 group-hover:text-gray-400 transition-all duration-150 flex-shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
