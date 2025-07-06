@@ -15,12 +15,6 @@ import {
   formatMeal,
   getContextualMessage 
 } from '@/utils/dataFormatting';
-import { 
-  analyzeSentiment, 
-  getEmpatheticOpener, 
-  adjustResponseTone, 
-  SentimentAnalysis 
-} from '@/utils/sentimentAnalysis';
 
 // Enhanced intent keywords with new categories
 const intentKeywords = {
@@ -564,16 +558,13 @@ const calculateExpectedRefundDate = (refundDate: string, refundMode: string): st
   return date.toLocaleDateString();
 };
 
-// Enhanced response generation with conversation memory, sentiment analysis, and smarter logic
+// Enhanced response generation with conversation memory and smarter logic
 export const generateResponse = (
   query: string, 
   transaction: Transaction, 
   memory?: ConversationMemory
 ): string => {
   const queryLower = query.toLowerCase();
-  
-  // Analyze sentiment and emotional state of the user's query
-  const sentimentAnalysis = analyzeSentiment(query);
   
   // First check for exact intent matches from suggestions
   const exactIntentMatch = findExactIntentMatch(query);
@@ -582,8 +573,7 @@ export const generateResponse = (
     if (memory) {
       updateConversationMemory(memory, exactIntentMatch, query);
     }
-    const baseResponse = generateSpecificResponse(exactIntentMatch, transaction);
-    return createEmpatheticResponse(baseResponse, sentimentAnalysis);
+    return generateSpecificResponse(exactIntentMatch, transaction);
   }
   
   // Enhanced fallback to keyword-based detection with context
@@ -615,10 +605,10 @@ export const generateResponse = (
   let response = '';
   switch (detectedCategory) {
     case 'refundStatus':
-      response = generateContextualRefundResponse(transaction, contextualFactors, sentimentAnalysis);
+      response = generateContextualRefundResponse(transaction, contextualFactors);
       break;
     case 'flightDetails':
-      response = generateContextualFlightResponse(transaction, contextualFactors, sentimentAnalysis);
+      response = generateContextualFlightResponse(transaction, contextualFactors);
       break;
     case 'bookingDetails':
       response = generateGenericBookingResponse(transaction);
@@ -627,13 +617,13 @@ export const generateResponse = (
       response = generateGenericPaymentResponse(transaction);
       break;
     case 'statusInquiry':
-      response = generateContextualStatusResponse(transaction, contextualFactors, sentimentAnalysis);
+      response = generateContextualStatusResponse(transaction, contextualFactors);
       break;
     case 'contactSupport':
-      response = generateContextualSupportResponse(transaction, queryLower, sentimentAnalysis);
+      response = generateContextualSupportResponse(transaction, queryLower);
       break;
     default:
-      response = generateFallbackResponse(transaction, queryLower, sentimentAnalysis);
+      response = generateFallbackResponse(transaction, queryLower);
   }
   
   // Update conversation memory
@@ -641,11 +631,11 @@ export const generateResponse = (
     updateConversationMemory(memory, detectedCategory, query);
   }
   
-  return createEmpatheticResponse(response, sentimentAnalysis);
+  return response;
 };
 
 // Contextual response generators
-const generateContextualRefundResponse = (transaction: Transaction, factors: string[], sentimentAnalysis?: SentimentAnalysis): string => {
+const generateContextualRefundResponse = (transaction: Transaction, factors: string[]): string => {
   if (!transaction.refund_id || transaction.refund_amount === 0) {
     if (factors.includes('flight_soon')) {
       return `There is no refund initiated for your booking ${transaction.booking_id}. Since your flight is soon, cancellation options may be limited. Please contact customer support immediately if you need to cancel.`;
@@ -655,7 +645,7 @@ const generateContextualRefundResponse = (transaction: Transaction, factors: str
   return generateGenericRefundResponse(transaction);
 };
 
-const generateContextualFlightResponse = (transaction: Transaction, factors: string[], sentimentAnalysis?: SentimentAnalysis): string => {
+const generateContextualFlightResponse = (transaction: Transaction, factors: string[]): string => {
   let response = generateGenericFlightResponse(transaction);
   
   if (factors.includes('flight_soon') && factors.includes('not_checked_in')) {
@@ -667,7 +657,7 @@ const generateContextualFlightResponse = (transaction: Transaction, factors: str
   return response;
 };
 
-const generateContextualStatusResponse = (transaction: Transaction, factors: string[], sentimentAnalysis?: SentimentAnalysis): string => {
+const generateContextualStatusResponse = (transaction: Transaction, factors: string[]): string => {
   if (factors.includes('booking_not_confirmed')) {
     return `Your booking status is: ${transaction.status} (not confirmed yet). This usually resolves within a few minutes. If it persists, please contact customer support.`;
   }
@@ -679,7 +669,7 @@ const generateContextualStatusResponse = (transaction: Transaction, factors: str
   return `Booking Status: ${transaction.status}\nCheck-in Status: ${transaction.checkin_status}\nBoarding Group: ${transaction.boarding_group || 'Will be assigned after check-in'}`;
 };
 
-const generateContextualSupportResponse = (transaction: Transaction, query: string, sentimentAnalysis?: SentimentAnalysis): string => {
+const generateContextualSupportResponse = (transaction: Transaction, query: string): string => {
   if (query.includes('urgent') || query.includes('emergency')) {
     return `🚨 For urgent issues, please call our 24/7 support line: 1800-XXX-XXXX\n\n${generateContactInfoResponse()}`;
   }
@@ -691,7 +681,7 @@ const generateContextualSupportResponse = (transaction: Transaction, query: stri
   return generateContactInfoResponse();
 };
 
-const generateFallbackResponse = (transaction: Transaction, query: string, sentimentAnalysis?: SentimentAnalysis): string => {
+const generateFallbackResponse = (transaction: Transaction, query: string): string => {
   if (query.includes('help') || query.includes('assist')) {
     return generateGeneralHelpResponse(transaction);
   }
@@ -704,42 +694,6 @@ const generateFallbackResponse = (transaction: Transaction, query: string, senti
 • Contact information for support
 
 Please try rephrasing your question or select from the suggested options.`;
-};
-
-/**
- * Creates an empathetic response by combining sentiment analysis with the base response
- */
-const createEmpatheticResponse = (baseResponse: string, sentimentAnalysis: SentimentAnalysis): string => {
-  // Get empathetic opener based on sentiment
-  const opener = getEmpatheticOpener(sentimentAnalysis);
-  
-  // Adjust the tone of the base response
-  const adjustedResponse = adjustResponseTone(baseResponse, sentimentAnalysis);
-  
-  // For very negative emotions, add extra empathy and urgency
-  if (sentimentAnalysis.emotion === 'angry' || sentimentAnalysis.emotion === 'frustrated') {
-    const empathicEnding = "\n\nI'm committed to resolving this for you as quickly as possible. Is there anything else I can help clarify right now?";
-    return `${opener}\n\n${adjustedResponse}${empathicEnding}`;
-  }
-  
-  // For worried users, add reassurance
-  if (sentimentAnalysis.emotion === 'worried') {
-    const reassurance = "\n\nPlease don't worry - I'm here to help you through this step by step.";
-    return `${opener}\n\n${adjustedResponse}${reassurance}`;
-  }
-  
-  // For neutral or positive emotions, use a lighter approach
-  if (sentimentAnalysis.emotion === 'neutral' || sentimentAnalysis.emotion === 'hopeful') {
-    return `${opener}\n\n${adjustedResponse}`;
-  }
-  
-  // For happy users, maintain the positive energy
-  if (sentimentAnalysis.emotion === 'happy' || sentimentAnalysis.emotion === 'satisfied') {
-    return `${opener}\n\n${adjustedResponse}\n\nI'm glad I could help! Let me know if you need anything else.`;
-  }
-  
-  // Default case
-  return `${opener}\n\n${adjustedResponse}`;
 };
 
 // Update conversation memory

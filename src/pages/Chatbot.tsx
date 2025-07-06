@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Send, Plane, Eye, EyeOff, Loader2, Printer, X } from 'lucide-react';
+import { Send, Plane, Eye, EyeOff, Loader2, Printer, X, HelpCircle, RefreshCw, AlertCircle } from 'lucide-react';
 import { ChatMessage } from '@/components/chatbot/ChatMessage';
 import { TransactionList } from '@/components/chatbot/TransactionList';
 import { QuerySuggestions } from '@/components/chatbot/QuerySuggestions';
@@ -29,9 +29,13 @@ const Chatbot = () => {
   } = useChatbot();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showTicketDetails, setShowTicketDetails] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [inputError, setInputError] = useState('');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,17 +45,36 @@ const Chatbot = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim()) return;
-
-    if (currentState === ChatState.EMAIL_COLLECTION) {
-      await sendMessage(inputValue, 'email');
-    } else if (currentState === ChatState.QUERY_HANDLING && selectedTransaction) {
-      await handleQuery(inputValue);
+  // Auto-focus input after state changes
+  useEffect(() => {
+    if (!isLoading && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
-    
-    setInputValue('');
-    setShowSuggestions(false);
+  }, [currentState, isLoading]);
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) {
+      setInputError('Please enter a message');
+      return;
+    }
+
+    setInputError('');
+    setIsTyping(true);
+
+    try {
+      if (currentState === ChatState.EMAIL_COLLECTION) {
+        await sendMessage(inputValue, 'email');
+      } else if (currentState === ChatState.QUERY_HANDLING && selectedTransaction) {
+        await handleQuery(inputValue);
+      }
+      
+      setInputValue('');
+      setShowSuggestions(false);
+    } catch (error) {
+      setInputError('Failed to send message. Please try again.');
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -60,12 +83,14 @@ const Chatbot = () => {
       handleSendMessage();
     } else if (e.key === 'Escape') {
       setShowSuggestions(false);
+      setInputError('');
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
+    setInputError('');
     
     if (currentState === ChatState.QUERY_HANDLING && selectedTransaction) {
       setShowSuggestions(value.trim().length > 0 || value.length === 0);
@@ -73,8 +98,9 @@ const Chatbot = () => {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    setInputValue(suggestion);
+    setInputValue('');
     setShowSuggestions(false);
+    setInputError('');
     handleQuery(suggestion);
   };
 
@@ -94,137 +120,254 @@ const Chatbot = () => {
     }
   };
 
+  const resetChat = () => {
+    window.location.reload();
+  };
+
+  const getStateDescription = () => {
+    switch (currentState) {
+      case ChatState.EMAIL_COLLECTION:
+        return "Enter your email address to find your bookings";
+      case ChatState.TRANSACTION_SELECTION:
+        return "Select a booking to get help with";
+      case ChatState.QUERY_HANDLING:
+        return "Ask me anything about your selected booking";
+      default:
+        return "Getting started...";
+    }
+  };
+
+  const getInputPlaceholder = () => {
+    switch (currentState) {
+      case ChatState.EMAIL_COLLECTION:
+        return "Enter your email address (e.g., john@example.com)";
+      case ChatState.QUERY_HANDLING:
+        return "Ask about refunds, flight details, seat changes...";
+      default:
+        return "Type your message...";
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-1/3 right-20 w-24 h-24 bg-cyan-400/10 rounded-full blur-lg animate-pulse delay-1000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-40 h-40 bg-blue-400/5 rounded-full blur-2xl animate-pulse delay-2000"></div>
-        
-        {/* Dotted Flight Path */}
-        <svg className="absolute top-1/4 left-0 w-full h-full opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path 
-            d="M0,50 Q25,30 50,50 T100,40" 
-            stroke="url(#gradient)" 
-            strokeWidth="0.2" 
-            strokeDasharray="2,3" 
-            fill="none"
-            className="animate-pulse"
-          />
-          <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.3"/>
-              <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.6"/>
-              <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.3"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <div className="max-w-7xl mx-auto p-6 relative z-10">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-2xl flex items-center justify-center shadow-2xl">
-                <Plane className="w-8 h-8 text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
+      <div className="max-w-5xl mx-auto p-4 md:p-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Enhanced Header - Now Aligned with Chat Container */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-md ring-2 ring-blue-100">
+                  <Plane className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <h1 className="text-3xl font-bold text-slate-800 tracking-tight leading-tight">
+                    Flight Assistant
+                  </h1>
+                  <p className="text-slate-600 font-medium text-base leading-relaxed mt-1">
+                    {getStateDescription()}
+                  </p>
+                </div>
               </div>
-              <div className="absolute -inset-1 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-2xl blur opacity-30 animate-pulse"></div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setShowHelp(!showHelp)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-500 hover:text-slate-700 h-10 w-10 p-0 rounded-xl"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                </Button>
+                <Button
+                  onClick={resetChat}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-500 hover:text-slate-700 h-10 w-10 p-0 rounded-xl"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2 tracking-wide">
-                Flight Assistant
-              </h1>
-              <p className="text-blue-200/80 text-sm font-bold">
-                Your intelligent travel companion
-              </p>
+
+            {/* Progress Indicator - Centered and Aligned */}
+            <div className="flex items-center justify-center gap-4 mb-6">
+              {[ChatState.EMAIL_COLLECTION, ChatState.TRANSACTION_SELECTION, ChatState.QUERY_HANDLING].map((state, index) => (
+                <div key={state} className="flex items-center">
+                  <div className={`w-4 h-4 rounded-full transition-all duration-300 flex items-center justify-center ${
+                    currentState === state 
+                      ? 'bg-blue-500 ring-4 ring-blue-100 shadow-sm' 
+                      : Object.values(ChatState).indexOf(currentState) > index
+                        ? 'bg-green-500 shadow-sm'
+                        : 'bg-slate-200'
+                  }`} />
+                  {index < 2 && (
+                    <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
+                      Object.values(ChatState).indexOf(currentState) > index ? 'bg-green-500' : 'bg-slate-200'
+                    }`} />
+                  )}
+                </div>
+              ))}
             </div>
+
+            {/* Help Panel - Aligned with Container */}
+            {showHelp && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6 animate-fade-in">
+                <h3 className="font-bold text-blue-800 mb-4 text-lg">How it works:</h3>
+                <ul className="text-blue-700 space-y-3 text-base leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
+                    <span>Enter your email to find your flight bookings</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
+                    <span>Select a booking you need help with</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
+                    <span>Ask questions about refunds, changes, or flight details</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
+                    <span>Use suggested questions for quick answers</span>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
-        </div>
 
-        <div className="max-w-6xl mx-auto">
-          {/* Chat Container - Full Width */}
-          <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
-              {/* Messages Area */}
-              <div className="h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
-                {messages.map((message, index) => (
-                  <div key={index} className="animate-fade-in">
-                    <ChatMessage message={message} />
+          {/* Chat Container with Perfect Alignment */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-3xl border border-slate-200/60 shadow-xl overflow-hidden">
+            {/* Messages Area with Improved Alignment */}
+            <div className="h-[540px] overflow-y-auto p-8 space-y-8 bg-gradient-to-b from-white/60 to-slate-50/40 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+              {messages.length === 0 && (
+                <div className="flex flex-col items-center justify-center text-center py-16">
+                  <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <Plane className="w-8 h-8 text-slate-400" />
                   </div>
-                ))}
+                  <h3 className="text-lg font-semibold text-slate-700 mb-2">Welcome to Flight Assistant</h3>
+                  <p className="text-slate-500 font-medium max-w-md">Let's get started by finding your flight bookings.</p>
+                </div>
+              )}
 
-                {/* Transaction List */}
-                {currentState === ChatState.TRANSACTION_SELECTION && transactions.length > 0 && (
-                  <div className="animate-fade-in">
-                    <TransactionList 
-                      transactions={transactions} 
-                      onSelect={selectTransaction}
-                    />
+              {messages.map((message, index) => (
+                <div key={index} className="animate-fade-in">
+                  <ChatMessage message={message} />
+                </div>
+              ))}
+
+              {/* Transaction List with Better Spacing */}
+              {currentState === ChatState.TRANSACTION_SELECTION && transactions.length > 0 && (
+                <div className="animate-fade-in pt-4">
+                  <TransactionList 
+                    transactions={transactions} 
+                    onSelect={selectTransaction}
+                  />
+                </div>
+              )}
+
+              {/* Centered Loading State */}
+              {isLoading && (
+                <div className="flex flex-col items-center justify-center gap-4 py-12">
+                  <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
+                    <Loader2 className="w-7 h-7 animate-spin text-blue-600" />
                   </div>
-                )}
-
-                {isLoading && (
-                  <div className="flex items-center justify-center gap-3 py-8">
-                    <div className="relative">
-                      <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
-                      <div className="absolute inset-0 bg-blue-400/20 rounded-full blur animate-pulse"></div>
-                    </div>
-                    <span className="text-blue-200/80 font-bold">Processing your request...</span>
+                  <div className="text-center">
+                    <span className="text-slate-700 font-semibold block text-lg">Processing your request</span>
+                    <span className="text-slate-500 text-base mt-1">This may take a few seconds...</span>
                   </div>
-                )}
-                
-                <div ref={messagesEndRef} />
-              </div>
+                </div>
+              )}
 
-              {/* Input Area with Quick Actions */}
-              <div className="border-t border-white/10 p-4 bg-white/5 backdrop-blur-sm">
-                {/* Quick Actions for Selected Transaction */}
-                {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
-                  <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl border border-white/10 backdrop-blur-sm shadow-lg">
-                    <div className="flex items-center gap-3 text-sm">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-blue-400/20">
-                        <Plane className="w-5 h-5 text-blue-400" />
+              {/* Centered Empty State */}
+              {currentState === ChatState.TRANSACTION_SELECTION && transactions.length === 0 && !isLoading && (
+                <div className="flex flex-col items-center justify-center text-center py-16">
+                  <div className="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                    <AlertCircle className="w-8 h-8 text-amber-600" />
+                  </div>
+                  <h3 className="font-bold text-slate-800 mb-3 text-lg">No bookings found</h3>
+                  <p className="text-slate-500 text-base mb-6 max-w-md">We couldn't find any bookings for this email address.</p>
+                  <Button onClick={resetChat} variant="outline" size="sm" className="rounded-xl">
+                    Try another email
+                  </Button>
+                </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area with Improved Alignment */}
+            <div className="border-t border-slate-100/60 bg-white/95 backdrop-blur-sm">
+              {/* Transaction Quick Actions with Better Layout */}
+              {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
+                <div className="px-8 pt-6">
+                  <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-50/90 to-indigo-50/90 rounded-2xl border border-blue-100/60 shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+                        <Plane className="w-6 h-6 text-white" />
                       </div>
                       <div>
-                        <div className="font-bold text-white text-base">{selectedTransaction.flight_number}</div>
-                        <div className="text-sm text-blue-200/80 font-medium">{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</div>
+                        <div className="font-bold text-slate-800 text-lg leading-tight">{selectedTransaction.flight_number}</div>
+                        <div className="text-slate-600 font-medium text-sm mt-0.5">{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Button
                         onClick={toggleTicketDetails}
                         size="sm"
-                        className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 hover:from-blue-500/30 hover:to-cyan-500/30 border border-blue-400/20 hover:border-blue-400/40 text-blue-300 hover:text-white text-sm px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-blue-500/20"
+                        variant="outline"
+                        className="border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold shadow-sm transition-all duration-200 rounded-xl h-10"
                       >
                         <Eye className="w-4 h-4 mr-2" />
-                        View Details
+                        Details
                       </Button>
                       <Button
                         onClick={handlePrintTicket}
                         size="sm"
-                        className="bg-gradient-to-r from-white/10 to-white/20 hover:from-white/20 hover:to-white/30 border border-white/20 hover:border-white/40 text-white/80 hover:text-white text-sm px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+                        variant="outline"
+                        className="border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-semibold shadow-sm transition-all duration-200 rounded-xl h-10"
                       >
                         <Printer className="w-4 h-4 mr-2" />
                         Print
                       </Button>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* Suggestions with Consistent Spacing */}
+              {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
+                <div className="px-8 pt-6">
+                  <QuerySuggestions 
+                    queryInput={inputValue}
+                    onSuggestionClick={handleSuggestionClick}
+                    isVisible={true}
+                    transaction={selectedTransaction}
+                    conversationMemory={conversationMemory}
+                  />
+                </div>
+              )}
+
+              {/* Input Section with Better Alignment */}
+              <div className="p-8">
+                {inputError && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm font-medium animate-fade-in flex items-center gap-3">
+                    <AlertCircle className="w-4 h-4" />
+                    <span>{inputError}</span>
+                  </div>
                 )}
 
-                <div className="flex gap-4">
-                  <div className="flex-1 relative">
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
                     <Input
+                      ref={inputRef}
                       value={inputValue}
                       onChange={handleInputChange}
                       onKeyPress={handleKeyPress}
                       onFocus={handleInputFocus}
-                      placeholder={
-                        currentState === ChatState.EMAIL_COLLECTION 
-                          ? "Enter your email address..." 
-                          : "Ask me anything about your booking..."
-                      }
-                      className="bg-slate-800/80 border-slate-600/50 text-white placeholder:text-slate-400 rounded-2xl px-6 py-4 text-base font-medium focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 backdrop-blur-sm transition-all duration-300 shadow-lg focus:shadow-blue-500/20 focus:bg-slate-700/80"
+                      placeholder={getInputPlaceholder()}
+                      className={`bg-white/95 backdrop-blur-sm border-slate-200 text-slate-800 placeholder:text-slate-500 rounded-2xl px-6 py-4 text-base font-medium focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all duration-200 shadow-sm h-14 ${
+                        inputError ? 'border-red-300 focus:border-red-400 focus:ring-red-100' : ''
+                      }`}
                       disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
                     />
                   </div>
@@ -232,47 +375,50 @@ const Chatbot = () => {
                   <Button
                     onClick={handleSendMessage}
                     disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
-                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-8 py-4 shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none font-bold hover:shadow-blue-500/30"
+                    className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0 rounded-2xl px-6 shadow-lg transition-all duration-200 font-semibold disabled:opacity-50 hover:shadow-xl hover:-translate-y-0.5 h-14 w-14 p-0"
                   >
-                    <Send className="w-5 h-5" />
+                    {isLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
                   </Button>
                 </div>
 
-                {/* Suggestions Area - Below Input */}
-                {currentState === ChatState.QUERY_HANDLING && selectedTransaction && inputValue.trim() === '' && (
-                  <div className="mt-4">
-                    <div className="mb-2">
-                      <span className="text-xs text-blue-200/60 font-medium">Quick questions:</span>
+                {/* Input Helper Text with Better Alignment */}
+                <div className="mt-4 flex items-center justify-between text-sm text-slate-500">
+                  <span>Press Enter to send, Escape to clear</span>
+                  {currentState === ChatState.QUERY_HANDLING && (
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                      <span>Ready to help</span>
                     </div>
-                    <QuerySuggestions 
-                      queryInput={inputValue}
-                      onSuggestionClick={handleSuggestionClick}
-                      isVisible={true}
-                      transaction={selectedTransaction}
-                      conversationMemory={conversationMemory}
-                    />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
+          </div>
 
-          {/* Flight Ticket Details Modal/Overlay - Only show when toggled */}
+          {/* Flight Ticket Details Modal with Better Centered Layout */}
           {selectedTransaction && showTicketDetails && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/20 rounded-3xl max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-2xl animate-scale-in">
-                <div className="border-b border-white/10 p-5 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center">
-                      <Plane className="w-4 h-4 text-blue-400" />
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+              <div className="bg-white border border-slate-200 rounded-3xl max-w-5xl w-full max-h-[95vh] overflow-hidden shadow-2xl animate-scale-in">
+                <div className="border-b border-slate-100 p-8 bg-gradient-to-r from-slate-50 to-blue-50/60 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-md">
+                      <Plane className="w-7 h-7 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold text-white">Ticket Details</h3>
+                    <div>
+                      <h3 className="text-2xl font-bold text-slate-800 leading-tight">Flight Details</h3>
+                      <p className="text-slate-600 font-medium text-base mt-1">{selectedTransaction.flight_number}</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Button
                       onClick={handlePrintTicket}
                       variant="outline"
                       size="sm"
-                      className="bg-gradient-to-r from-white/10 to-white/20 border-white/20 text-blue-300 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/30 hover:text-white font-medium rounded-xl transition-all duration-200 hover:scale-105"
+                      className="border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold shadow-sm rounded-xl h-10"
                     >
                       <Printer className="w-4 h-4 mr-2" />
                       Print
@@ -281,13 +427,13 @@ const Chatbot = () => {
                       onClick={toggleTicketDetails}
                       variant="ghost"
                       size="sm"
-                      className="text-blue-400 hover:text-blue-300 hover:bg-white/10 font-medium rounded-xl transition-all duration-200 hover:scale-105"
+                      className="text-slate-500 hover:text-slate-700 hover:bg-slate-100 font-semibold rounded-xl h-10 w-10 p-0"
                     >
                       <X className="w-5 h-5" />
                     </Button>
                   </div>
                 </div>
-                <div className="overflow-y-auto max-h-[calc(95vh-100px)] p-6 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                <div className="overflow-y-auto max-h-[calc(95vh-100px)] p-8 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
                   <FlightTicketDetails transaction={selectedTransaction} />
                 </div>
               </div>
