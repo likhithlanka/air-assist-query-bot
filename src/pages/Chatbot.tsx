@@ -95,68 +95,39 @@ const Chatbot = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500/10 rounded-full blur-xl animate-pulse"></div>
-        <div className="absolute top-1/3 right-20 w-24 h-24 bg-cyan-400/10 rounded-full blur-lg animate-pulse delay-1000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-40 h-40 bg-blue-400/5 rounded-full blur-2xl animate-pulse delay-2000"></div>
-        
-        {/* Dotted Flight Path */}
-        <svg className="absolute top-1/4 left-0 w-full h-full opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <path 
-            d="M0,50 Q25,30 50,50 T100,40" 
-            stroke="url(#gradient)" 
-            strokeWidth="0.2" 
-            strokeDasharray="2,3" 
-            fill="none"
-            className="animate-pulse"
-          />
-          <defs>
-            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0.3"/>
-              <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.6"/>
-              <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.3"/>
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      <div className="max-w-7xl mx-auto p-6 relative z-10">
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-5xl mx-auto p-6">
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="relative">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-2xl flex items-center justify-center shadow-2xl">
-                <Plane className="w-8 h-8 text-white" />
-              </div>
-              <div className="absolute -inset-1 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-2xl blur opacity-30 animate-pulse"></div>
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+              <Plane className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2 tracking-wide">
+              <h1 className="text-2xl font-semibold text-gray-900">
                 Flight Assistant
               </h1>
-              <p className="text-blue-200/80 text-sm font-bold">
+              <p className="text-sm text-gray-600 mt-1">
                 Your intelligent travel companion
               </p>
             </div>
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          {/* Chat Container - Full Width */}
-          <div className="backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 shadow-2xl overflow-hidden">
+        <div className="max-w-4xl mx-auto">
+          {/* Chat Container */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
               {/* Messages Area */}
-              <div className="h-[500px] overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-blue-400/20 scrollbar-track-transparent">
+              <div className="h-[500px] overflow-y-auto p-6 space-y-4">
                 {messages.map((message, index) => (
-                  <div key={index} className="animate-fade-in">
+                  <div key={index}>
                     <ChatMessage message={message} />
                   </div>
                 ))}
 
                 {/* Transaction List */}
                 {currentState === ChatState.TRANSACTION_SELECTION && transactions.length > 0 && (
-                  <div className="animate-fade-in">
+                  <div>
                     <TransactionList 
                       transactions={transactions} 
                       onSelect={selectTransaction}
@@ -166,36 +137,34 @@ const Chatbot = () => {
 
                 {isLoading && (
                   <div className="flex items-center justify-center gap-3 py-8">
-                    <div className="relative">
-                      <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
-                      <div className="absolute inset-0 bg-blue-400/20 rounded-full blur animate-pulse"></div>
-                    </div>
-                    <span className="text-blue-200/80 font-bold">Processing your request...</span>
+                    <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                    <span className="text-gray-600 font-medium">Processing your request...</span>
                   </div>
                 )}
                 
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Input Area with Quick Actions */}
-              <div className="border-t border-white/10 p-4 bg-white/5 backdrop-blur-sm">
+              {/* Input Area */}
+              <div className="border-t border-gray-100 p-4 bg-gray-50">
                 {/* Quick Actions for Selected Transaction */}
                 {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
-                  <div className="flex items-center justify-between mb-4 p-4 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl border border-white/10 backdrop-blur-sm shadow-lg">
+                  <div className="flex items-center justify-between mb-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
                     <div className="flex items-center gap-3 text-sm">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center border border-blue-400/20">
-                        <Plane className="w-5 h-5 text-blue-400" />
+                      <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center border border-blue-100">
+                        <Plane className="w-4 h-4 text-blue-600" />
                       </div>
                       <div>
-                        <div className="font-bold text-white text-base">{selectedTransaction.flight_number}</div>
-                        <div className="text-sm text-blue-200/80 font-medium">{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</div>
+                        <div className="font-semibold text-gray-900">{selectedTransaction.flight_number}</div>
+                        <div className="text-sm text-gray-500">{selectedTransaction.departure_airport} → {selectedTransaction.arrival_airport}</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <Button
                         onClick={toggleTicketDetails}
                         size="sm"
-                        className="bg-gradient-to-r from-blue-500/20 to-cyan-500/20 hover:from-blue-500/30 hover:to-cyan-500/30 border border-blue-400/20 hover:border-blue-400/40 text-blue-300 hover:text-white text-sm px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-blue-500/20"
+                        variant="outline"
+                        className="border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 font-medium"
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
@@ -203,7 +172,8 @@ const Chatbot = () => {
                       <Button
                         onClick={handlePrintTicket}
                         size="sm"
-                        className="bg-gradient-to-r from-white/10 to-white/20 hover:from-white/20 hover:to-white/30 border border-white/20 hover:border-white/40 text-white/80 hover:text-white text-sm px-4 py-2.5 rounded-xl transition-all duration-200 hover:scale-105 shadow-lg"
+                        variant="outline"
+                        className="border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 font-medium"
                       >
                         <Printer className="w-4 h-4 mr-2" />
                         Print
@@ -212,8 +182,21 @@ const Chatbot = () => {
                   </div>
                 )}
 
-                <div className="flex gap-4">
-                  <div className="flex-1 relative">
+                {/* Suggestions Area - Above Input */}
+                {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
+                  <div className="mb-4">
+                    <QuerySuggestions 
+                      queryInput={inputValue}
+                      onSuggestionClick={handleSuggestionClick}
+                      isVisible={true}
+                      transaction={selectedTransaction}
+                      conversationMemory={conversationMemory}
+                    />
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <div className="flex-1">
                     <Input
                       value={inputValue}
                       onChange={handleInputChange}
@@ -224,7 +207,7 @@ const Chatbot = () => {
                           ? "Enter your email address..." 
                           : "Ask me anything about your booking..."
                       }
-                      className="bg-slate-800/80 border-slate-600/50 text-white placeholder:text-slate-400 rounded-2xl px-6 py-4 text-base font-medium focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 backdrop-blur-sm transition-all duration-300 shadow-lg focus:shadow-blue-500/20 focus:bg-slate-700/80"
+                      className="bg-white border-gray-200 text-gray-900 placeholder:text-gray-500 rounded-lg px-4 py-3 text-sm font-medium focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all duration-200"
                       disabled={isLoading || currentState === ChatState.TRANSACTION_SELECTION}
                     />
                   </div>
@@ -232,49 +215,31 @@ const Chatbot = () => {
                   <Button
                     onClick={handleSendMessage}
                     disabled={isLoading || !inputValue.trim() || currentState === ChatState.TRANSACTION_SELECTION}
-                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-0 rounded-2xl px-8 py-4 shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none font-bold hover:shadow-blue-500/30"
+                    className="bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-lg px-6 py-3 shadow-sm transition-all duration-200 font-medium disabled:opacity-50"
                   >
-                    <Send className="w-5 h-5" />
+                    <Send className="w-4 h-4" />
                   </Button>
                 </div>
-
-                {/* Suggestions Area - Below Input */}
-                {currentState === ChatState.QUERY_HANDLING && selectedTransaction && (
-                  <div className="mt-4">
-                    <div className="mb-2">
-                      <span className="text-xs text-blue-200/60 font-medium">
-                        {inputValue.trim() === '' ? 'Quick questions:' : 'Suggested questions:'}
-                      </span>
-                    </div>
-                    <QuerySuggestions 
-                      queryInput={inputValue}
-                      onSuggestionClick={handleSuggestionClick}
-                      isVisible={true}
-                      transaction={selectedTransaction}
-                      conversationMemory={conversationMemory}
-                    />
-                  </div>
-                )}
               </div>
             </div>
 
-          {/* Flight Ticket Details Modal/Overlay - Only show when toggled */}
+          {/* Flight Ticket Details Modal */}
           {selectedTransaction && showTicketDetails && (
-            <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in">
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-white/20 rounded-3xl max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-2xl animate-scale-in">
-                <div className="border-b border-white/10 p-5 bg-gradient-to-r from-white/5 to-white/10 backdrop-blur-sm flex items-center justify-between">
+            <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+              <div className="bg-white border border-gray-200 rounded-xl max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-xl">
+                <div className="border-b border-gray-100 p-4 bg-gray-50 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center">
-                      <Plane className="w-4 h-4 text-blue-400" />
+                    <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center border border-blue-100">
+                      <Plane className="w-4 h-4 text-blue-600" />
                     </div>
-                    <h3 className="text-xl font-bold text-white">Ticket Details</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Ticket Details</h3>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Button
                       onClick={handlePrintTicket}
                       variant="outline"
                       size="sm"
-                      className="bg-gradient-to-r from-white/10 to-white/20 border-white/20 text-blue-300 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/30 hover:text-white font-medium rounded-xl transition-all duration-200 hover:scale-105"
+                      className="border-gray-200 text-gray-700 hover:bg-gray-50 font-medium"
                     >
                       <Printer className="w-4 h-4 mr-2" />
                       Print
@@ -283,13 +248,13 @@ const Chatbot = () => {
                       onClick={toggleTicketDetails}
                       variant="ghost"
                       size="sm"
-                      className="text-blue-400 hover:text-blue-300 hover:bg-white/10 font-medium rounded-xl transition-all duration-200 hover:scale-105"
+                      className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 font-medium"
                     >
-                      <X className="w-5 h-5" />
+                      <X className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-                <div className="overflow-y-auto max-h-[calc(95vh-100px)] p-6 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+                <div className="overflow-y-auto max-h-[calc(95vh-80px)] p-6">
                   <FlightTicketDetails transaction={selectedTransaction} />
                 </div>
               </div>

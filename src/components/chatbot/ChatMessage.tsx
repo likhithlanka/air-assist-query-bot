@@ -13,19 +13,19 @@ const getMessageIcon = (content: string, isBot: boolean) => {
   const lowerContent = content.toLowerCase();
   
   if (lowerContent.includes('refund') || lowerContent.includes('money') || lowerContent.includes('payment')) {
-    return <DollarSign className="w-4 h-4 text-emerald-400" />;
+    return <DollarSign className="w-3 h-3 text-green-600" />;
   }
   if (lowerContent.includes('flight') || lowerContent.includes('departure') || lowerContent.includes('arrival')) {
-    return <Plane className="w-4 h-4 text-blue-400" />;
+    return <Plane className="w-3 h-3 text-blue-600" />;
   }
   if (lowerContent.includes('booking') || lowerContent.includes('reservation')) {
-    return <Calendar className="w-4 h-4 text-purple-400" />;
+    return <Calendar className="w-3 h-3 text-purple-600" />;
   }
   if (lowerContent.includes('card') || lowerContent.includes('payment method')) {
-    return <CreditCard className="w-4 h-4 text-orange-400" />;
+    return <CreditCard className="w-3 h-3 text-orange-600" />;
   }
   
-  return <Bot className="w-4 h-4 text-blue-400" />;
+  return <Bot className="w-3 h-3 text-blue-600" />;
 };
 
 export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
@@ -33,29 +33,28 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   const messageIcon = getMessageIcon(message.content, isBot);
   
   return (
-    <div className={`flex gap-4 ${isBot ? 'justify-start' : 'justify-end'} animate-fade-in`}>
+    <div className={`flex gap-3 ${isBot ? 'justify-start' : 'justify-end'}`}>
       {isBot && (
-        <div className="relative flex-shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg">
-            <Bot className="w-5 h-5 text-white" />
+        <div className="flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <Bot className="w-4 h-4 text-white" />
           </div>
-          <div className="absolute -inset-1 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl blur opacity-30 animate-pulse"></div>
         </div>
       )}
       
-      <div className="flex flex-col max-w-[75%] gap-2">
+      <div className="flex flex-col max-w-[75%] gap-1">
         <div
-          className={`relative px-6 py-4 rounded-3xl backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] ${
+          className={`px-4 py-3 rounded-xl transition-all duration-200 ${
             isBot
-              ? 'bg-white/10 border border-white/20 text-white shadow-xl'
-              : 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-xl'
+              ? 'bg-gray-100 border border-gray-200 text-gray-900'
+              : 'bg-blue-600 text-white'
           }`}
         >
           {/* Message Icon */}
           {isBot && messageIcon && (
-            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-200">
               {messageIcon}
-              <span className="text-xs font-bold text-blue-200/80 uppercase tracking-wide">
+              <span className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
                 {message.content.includes('refund') ? 'Refund Info' :
                  message.content.includes('flight') ? 'Flight Details' :
                  message.content.includes('booking') ? 'Booking Info' :
@@ -64,28 +63,22 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
             </div>
           )}
           
-          <p className="whitespace-pre-wrap leading-relaxed font-bold">
+          <p className="whitespace-pre-wrap leading-relaxed font-medium text-sm">
             {message.content}
           </p>
-          
-          {/* Floating glow effect */}
-          <div className={`absolute -inset-1 rounded-3xl blur opacity-20 ${
-            isBot ? 'bg-white/20' : 'bg-gradient-to-r from-blue-500 to-cyan-500'
-          }`}></div>
         </div>
         
-        <div className={`text-xs ${isBot ? 'text-blue-200/60' : 'text-blue-200/60'} flex items-center gap-2 px-2 font-bold`}>
+        <div className={`text-xs ${isBot ? 'text-gray-500' : 'text-gray-500'} flex items-center gap-1 px-2 font-medium`}>
           <Clock className="w-3 h-3" />
           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
       
       {!isBot && (
-        <div className="relative flex-shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center shadow-lg">
-            <User className="w-5 h-5 text-white" />
+        <div className="flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-gray-600 flex items-center justify-center">
+            <User className="w-4 h-4 text-white" />
           </div>
-          <div className="absolute -inset-1 bg-gradient-to-br from-slate-600 to-slate-700 rounded-2xl blur opacity-30"></div>
         </div>
       )}
     </div>

@@ -42,18 +42,23 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   };
 
   return (
-    <div className="animate-fade-in mb-3">
-      <div className="bg-gradient-to-r from-white/5 to-white/10 rounded-2xl border border-white/10 shadow-lg backdrop-blur-sm overflow-hidden">
-        <div className="p-4">
+    <div className="mb-3">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-3">
+          <div className="mb-2">
+            <span className="text-xs text-gray-600 font-medium">
+              {queryInput.trim() === '' ? 'Quick questions:' : 'Suggested questions:'}
+            </span>
+          </div>
           <div className="flex flex-wrap gap-2">
             {suggestions.slice(0, 6).map((suggestion, index) => (
               <button
                 key={index}
                 onClick={() => handleSuggestionClick(suggestion.display)}
-                className="group inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 border border-blue-400/20 hover:border-blue-400/40 rounded-full text-white text-sm font-medium transition-all duration-200 hover:scale-105 hover:shadow-lg shadow-blue-500/20"
+                className="group inline-flex items-center gap-1.5 px-3 py-2 bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-200 rounded-lg text-gray-700 hover:text-blue-700 text-xs font-medium transition-all duration-200 hover:shadow-sm"
               >
                 <span className="leading-none">{suggestion.display}</span>
-                <ChevronRight className="w-3.5 h-3.5 text-blue-300/70 group-hover:text-blue-300 group-hover:translate-x-0.5 transition-all duration-200" />
+                <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all duration-200" />
               </button>
             ))}
           </div>
