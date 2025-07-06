@@ -21,6 +21,7 @@ import {
   adjustResponseTone, 
   SentimentAnalysis 
 } from '@/utils/sentimentAnalysis';
+import { openAIService } from '@/services/openaiService';
 
 // Enhanced intent keywords with new categories
 const intentKeywords = {
@@ -537,13 +538,16 @@ const calculateExpectedRefundDate = (refundDate: string, refundMode: string): st
   return date.toLocaleDateString();
 };
 
-// Enhanced response generation with conversation memory and smarter logic
-export const generateResponse = (
+// Enhanced response generation with conversation memory, sentiment analysis, and AI intent matching
+export const generateResponse = async (
   query: string, 
   transaction: Transaction, 
   memory?: ConversationMemory
-): string => {
+): Promise<string> => {
   const queryLower = query.toLowerCase();
+  
+  // Analyze sentiment and emotional state of the user's query
+  const sentimentAnalysis = analyzeSentiment(query);
   
   // First check for exact intent matches from suggestions
   const exactIntentMatch = findExactIntentMatch(query);
@@ -552,7 +556,8 @@ export const generateResponse = (
     if (memory) {
       updateConversationMemory(memory, exactIntentMatch, query);
     }
-    return generateSpecificResponse(exactIntentMatch, transaction);
+    const baseResponse = generateSpecificResponse(exactIntentMatch, transaction);
+    return createEmpatheticResponse(baseResponse, sentimentAnalysis);
   }
   
   // Enhanced fallback to keyword-based detection with context
@@ -567,6 +572,11 @@ export const generateResponse = (
       detectedCategory = config.category;
     }
   });
+
+  // If no clear intent detected, try AI-powered intent matching
+  if (maxMatches === 0 || detectedCategory === '') {
+    return await handleUnknownIntentWithAI(query, transaction, sentimentAnalysis, memory);
+  }
 
   // Add contextual factors for smarter responses
   if (transaction) {
@@ -602,7 +612,7 @@ export const generateResponse = (
       response = generateContextualSupportResponse(transaction, queryLower);
       break;
     default:
-      response = generateFallbackResponse(transaction, queryLower);
+      return await handleUnknownIntentWithAI(query, transaction, sentimentAnalysis, memory);
   }
   
   // Update conversation memory
@@ -610,7 +620,7 @@ export const generateResponse = (
     updateConversationMemory(memory, detectedCategory, query);
   }
   
-  return response;
+  return createEmpatheticResponse(response, sentimentAnalysis);
 };
 
 // Contextual response generators
@@ -763,4 +773,154 @@ const generateSpecificResponse = (intent: string, transaction: Transaction): str
     default:
       return "I apologize, but I can only provide information about refund status, flight details, and booking details. For other queries, please contact our support team.";
   }
+};
+
+/**
+ * Creates an empathetic response by combining sentiment analysis with the base response
+ */
+const createEmpatheticResponse = (baseResponse: string, sentimentAnalysis: SentimentAnalysis): string => {
+  // Get empathetic opener based on sentiment
+  const opener = getEmpatheticOpener(sentimentAnalysis);
+  
+  // Adjust the tone of the base response
+  const adjustedResponse = adjustResponseTone(baseResponse, sentimentAnalysis);
+  
+  // For very negative emotions, add extra empathy and urgency
+  if (sentimentAnalysis.emotion === 'angry' || sentimentAnalysis.emotion === 'frustrated') {
+    const empathicEnding = "\n\nI'm committed to resolving this for you as quickly as possible. Is there anything else I can help clarify right now?";
+    return `${opener}\n\n${adjustedResponse}${empathicEnding}`;
+  }
+  
+  // For worried users, add reassurance
+  if (sentimentAnalysis.emotion === 'worried') {
+    const reassurance = "\n\nPlease don't worry - I'm here to help you through this step by step.";
+    return `${opener}\n\n${adjustedResponse}${reassurance}`;
+  }
+  
+  // For neutral or positive emotions, use a lighter approach
+  if (sentimentAnalysis.emotion === 'neutral' || sentimentAnalysis.emotion === 'hopeful') {
+    return `${opener}\n\n${adjustedResponse}`;
+  }
+  
+  // For happy users, maintain the positive energy
+  if (sentimentAnalysis.emotion === 'happy' || sentimentAnalysis.emotion === 'satisfied') {
+    return `${opener}\n\n${adjustedResponse}\n\nI'm glad I could help! Let me know if you need anything else.`;
+  }
+  
+  // Default case
+  return `${opener}\n\n${adjustedResponse}`;
+};
+
+/**
+ * Handles unknown intents using OpenAI to match with available intents
+ */
+const handleUnknownIntentWithAI = async (
+  query: string, 
+  transaction: Transaction, 
+  sentimentAnalysis: SentimentAnalysis, 
+  memory?: ConversationMemory
+): Promise<string> => {
+  try {
+    // Create a context about available intents for AI
+    const availableIntents = [
+      "refund status and timing",
+      "flight details and schedules", 
+      "booking information and PNR",
+      "payment details and breakdown",
+      "check-in status and boarding",
+      "meal selections and preferences",
+      "seat assignments and changes",
+      "general help and support contact"
+    ];
+
+    const intentMatchingPrompt = `User query: "${query}"
+
+Available intents I can help with:
+${availableIntents.map((intent, i) => `${i + 1}. ${intent}`).join('\n')}
+
+Based on the user's query, which intent (1-${availableIntents.length}) seems most likely? 
+If unclear, pick the most probable one and explain your assumption.
+Respond in format: "INTENT: [number] - ASSUMPTION: [brief explanation]"`;
+
+    const aiResult = await openAIService.generateAIResponse(
+      intentMatchingPrompt,
+      transaction,
+      sentimentAnalysis,
+      'Intent matching for unclear query'
+    );
+
+    if ('response' in aiResult) {
+      // Parse AI response to extract intent and assumption
+      const response = aiResult.response;
+      const intentMatch = response.match(/INTENT:\s*(\d+)/);
+      const assumptionMatch = response.match(/ASSUMPTION:\s*(.+)/);
+      
+      if (intentMatch && assumptionMatch) {
+        const intentNumber = parseInt(intentMatch[1], 10);
+        const assumption = assumptionMatch[1].trim();
+        
+        // Map intent number to category and generate response
+        const intentMapping: Record<number, string> = {
+          1: 'refundStatus',
+          2: 'flightDetails', 
+          3: 'bookingDetails',
+          4: 'paymentDetails',
+          5: 'statusInquiry',
+          6: 'mealSelection',
+          7: 'seatNumber',
+          8: 'contactSupport'
+        };
+        
+        const detectedCategory = intentMapping[intentNumber];
+        if (detectedCategory) {
+          let baseResponse = '';
+          
+          // Generate appropriate response based on detected intent
+          switch (detectedCategory) {
+            case 'refundStatus':
+              baseResponse = generateRefundStatusResponse(transaction);
+              break;
+            case 'flightDetails':
+              baseResponse = generateFlightDetailsResponse(transaction);
+              break;
+            case 'bookingDetails':
+              baseResponse = generateBookingDetailsResponse(transaction);
+              break;
+            case 'paymentDetails':
+              baseResponse = generatePaymentBreakdownResponse(transaction);
+              break;
+            case 'statusInquiry':
+              baseResponse = generateCheckinStatusResponse(transaction);
+              break;
+            case 'mealSelection':
+              baseResponse = generateMealSelectionResponse(transaction);
+              break;
+            case 'seatNumber':
+              baseResponse = generateSeatNumberResponse(transaction);
+              break;
+            case 'contactSupport':
+              baseResponse = generateContactInfoResponse();
+              break;
+            default:
+              baseResponse = generateFallbackResponse(transaction, query, sentimentAnalysis);
+          }
+          
+          // Add assumption explanation and provide the response
+          const assumptionResponse = `I think you're asking about ${availableIntents[intentNumber - 1]}. ${assumption}\n\n${baseResponse}`;
+          
+          // Update conversation memory
+          if (memory) {
+            updateConversationMemory(memory, detectedCategory, query);
+          }
+          
+          return createEmpatheticResponse(assumptionResponse, sentimentAnalysis);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error with AI intent matching:', error);
+  }
+  
+  // Fallback to traditional response if AI fails
+  return createEmpatheticResponse(generateFallbackResponse(transaction, query, sentimentAnalysis), sentimentAnalysis);
 };

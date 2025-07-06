@@ -138,7 +138,7 @@ export const useChatbot = () => {
 
     try {
       // Use enhanced response generation with conversation memory
-      const response = generateResponse(query, selectedTransaction, conversationMemory);
+      const response = await generateResponse(query, selectedTransaction, conversationMemory);
       addMessage(response, 'bot');
       
       // Update conversation memory state
