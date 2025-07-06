@@ -151,91 +151,91 @@ const Chatbot = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50">
       <div className="max-w-5xl mx-auto p-4 md:p-6">
-        {/* Enhanced Header with Better Alignment */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-md ring-2 ring-blue-100">
-                <Plane className="w-7 h-7 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <h1 className="text-3xl font-bold text-slate-800 tracking-tight leading-tight">
-                  Flight Assistant
-                </h1>
-                <p className="text-slate-600 font-medium text-base leading-relaxed mt-1">
-                  {getStateDescription()}
-                </p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setShowHelp(!showHelp)}
-                variant="ghost"
-                size="sm"
-                className="text-slate-500 hover:text-slate-700 h-10 w-10 p-0 rounded-xl"
-              >
-                <HelpCircle className="w-5 h-5" />
-              </Button>
-              <Button
-                onClick={resetChat}
-                variant="ghost"
-                size="sm"
-                className="text-slate-500 hover:text-slate-700 h-10 w-10 p-0 rounded-xl"
-              >
-                <RefreshCw className="w-5 h-5" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Progress Indicator with Better Alignment */}
-          <div className="flex items-center justify-center gap-4 mb-6">
-            {[ChatState.EMAIL_COLLECTION, ChatState.TRANSACTION_SELECTION, ChatState.QUERY_HANDLING].map((state, index) => (
-              <div key={state} className="flex items-center">
-                <div className={`w-4 h-4 rounded-full transition-all duration-300 flex items-center justify-center ${
-                  currentState === state 
-                    ? 'bg-blue-500 ring-4 ring-blue-100 shadow-sm' 
-                    : Object.values(ChatState).indexOf(currentState) > index
-                      ? 'bg-green-500 shadow-sm'
-                      : 'bg-slate-200'
-                }`} />
-                {index < 2 && (
-                  <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
-                    Object.values(ChatState).indexOf(currentState) > index ? 'bg-green-500' : 'bg-slate-200'
-                  }`} />
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* Help Panel with Better Alignment */}
-          {showHelp && (
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6 animate-fade-in">
-              <h3 className="font-bold text-blue-800 mb-4 text-lg">How it works:</h3>
-              <ul className="text-blue-700 space-y-3 text-base leading-relaxed">
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
-                  <span>Enter your email to find your flight bookings</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
-                  <span>Select a booking you need help with</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
-                  <span>Ask questions about refunds, changes, or flight details</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
-                  <span>Use suggested questions for quick answers</span>
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
-
         <div className="max-w-4xl mx-auto">
-          {/* Chat Container with Better Structure */}
+          {/* Enhanced Header - Now Aligned with Chat Container */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-md ring-2 ring-blue-100">
+                  <Plane className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex flex-col">
+                  <h1 className="text-3xl font-bold text-slate-800 tracking-tight leading-tight">
+                    Flight Assistant
+                  </h1>
+                  <p className="text-slate-600 font-medium text-base leading-relaxed mt-1">
+                    {getStateDescription()}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setShowHelp(!showHelp)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-500 hover:text-slate-700 h-10 w-10 p-0 rounded-xl"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                </Button>
+                <Button
+                  onClick={resetChat}
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-500 hover:text-slate-700 h-10 w-10 p-0 rounded-xl"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Progress Indicator - Centered and Aligned */}
+            <div className="flex items-center justify-center gap-4 mb-6">
+              {[ChatState.EMAIL_COLLECTION, ChatState.TRANSACTION_SELECTION, ChatState.QUERY_HANDLING].map((state, index) => (
+                <div key={state} className="flex items-center">
+                  <div className={`w-4 h-4 rounded-full transition-all duration-300 flex items-center justify-center ${
+                    currentState === state 
+                      ? 'bg-blue-500 ring-4 ring-blue-100 shadow-sm' 
+                      : Object.values(ChatState).indexOf(currentState) > index
+                        ? 'bg-green-500 shadow-sm'
+                        : 'bg-slate-200'
+                  }`} />
+                  {index < 2 && (
+                    <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
+                      Object.values(ChatState).indexOf(currentState) > index ? 'bg-green-500' : 'bg-slate-200'
+                    }`} />
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Help Panel - Aligned with Container */}
+            {showHelp && (
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6 mb-6 animate-fade-in">
+                <h3 className="font-bold text-blue-800 mb-4 text-lg">How it works:</h3>
+                <ul className="text-blue-700 space-y-3 text-base leading-relaxed">
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
+                    <span>Enter your email to find your flight bookings</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
+                    <span>Select a booking you need help with</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
+                    <span>Ask questions about refunds, changes, or flight details</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 bg-blue-600 rounded-full mt-2.5 flex-shrink-0"></span>
+                    <span>Use suggested questions for quick answers</span>
+                  </li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Chat Container with Perfect Alignment */}
           <div className="bg-white/90 backdrop-blur-sm rounded-3xl border border-slate-200/60 shadow-xl overflow-hidden">
             {/* Messages Area with Improved Alignment */}
             <div className="h-[540px] overflow-y-auto p-8 space-y-8 bg-gradient-to-b from-white/60 to-slate-50/40 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
