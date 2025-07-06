@@ -4,6 +4,8 @@ import { Message, Transaction, ChatState, ConversationMemory } from '@/types/cha
 import { sheetDbService } from '@/services/sheetDbService';
 import { validateEmail } from '@/utils/validation';
 import { generateResponse } from '@/utils/responseGenerator';
+import { analyzeSentiment } from '@/utils/sentimentAnalysis';
+import { openAIService } from '@/services/openaiService';
 import { 
   shouldInitiateRefund, 
   generateNextRefundId, 
@@ -137,20 +139,74 @@ export const useChatbot = () => {
     setIsLoading(true);
 
     try {
-      // Use enhanced response generation with conversation memory
-      const response = generateResponse(query, selectedTransaction, conversationMemory);
-      addMessage(response, 'bot');
+      // Analyze sentiment first
+      const sentimentAnalysis = analyzeSentiment(query);
       
-      // Update conversation memory state
+      // Generate rule-based response
+      const ruleBasedResponse = generateResponse(query, selectedTransaction, conversationMemory);
+      
+      // Determine if we should use AI for this query
+      const shouldUseAI = openAIService.shouldUseAI(
+        query, 
+        sentimentAnalysis, 
+        ruleBasedResponse.length > 50 // Has substantial rule-based response
+      );
+      
+      let finalResponse = ruleBasedResponse;
+      
+      // Use AI for complex or highly emotional queries
+      if (shouldUseAI) {
+        try {
+          const aiResult = await openAIService.generateAIResponse(
+            query,
+            selectedTransaction,
+            sentimentAnalysis,
+            `Previous context: User is asking about booking ${selectedTransaction.booking_id}`
+          );
+          
+          if ('response' in aiResult) {
+            // AI response successful, use it
+            finalResponse = aiResult.response;
+            
+            // Update conversation memory to note AI was used
+            setConversationMemory(prev => ({
+              ...prev,
+              contextData: {
+                ...prev.contextData,
+                lastUsedAI: true,
+                aiConfidence: aiResult.confidence,
+                sentimentDetected: sentimentAnalysis.emotion
+              }
+            }));
+          } else {
+            // AI failed, fall back to rule-based response
+            console.log('AI fallback failed, using rule-based response:', aiResult.error);
+          }
+        } catch (error) {
+          console.error('Error with AI service:', error);
+          // Continue with rule-based response
+        }
+      }
+      
+      addMessage(finalResponse, 'bot');
+      
+      // Update conversation memory
       setConversationMemory(prev => ({
         ...prev,
         contextData: {
           ...prev.contextData,
           lastQuery: query,
-          lastResponse: response,
-          queryTimestamp: new Date().toISOString()
+          lastResponse: finalResponse,
+          queryTimestamp: new Date().toISOString(),
+          lastSentiment: sentimentAnalysis,
+          usedAI: shouldUseAI
         }
       }));
+      
+      // Log sentiment for demo purposes (can be removed in production)
+      if (sentimentAnalysis.confidence > 0.6) {
+        console.log(`Sentiment detected: ${sentimentAnalysis.emotion} (${sentimentAnalysis.sentiment}) - ${sentimentAnalysis.urgency} urgency`);
+      }
       
     } catch (error) {
       addMessage('I apologize, but I encountered an error processing your request. Please try again or contact our support team for assistance.', 'bot');
