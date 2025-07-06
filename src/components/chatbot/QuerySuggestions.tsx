@@ -94,47 +94,47 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
   };
 
   return (
-    <div className="mb-4 animate-fade-in">
-      <div className="bg-gradient-to-br from-white/90 to-slate-50/50 rounded-2xl border border-slate-200/50 shadow-lg backdrop-blur-sm overflow-hidden">
-        <div className="p-5">
-          {/* Header */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-blue-600" />
-                <span className="text-sm text-slate-700 font-bold">
+    <div className="mb-6 animate-fade-in">
+      <div className="bg-gradient-to-br from-white/95 to-slate-50/60 rounded-2xl border border-slate-200/60 shadow-lg backdrop-blur-sm overflow-hidden">
+        <div className="p-6">
+          {/* Header with Better Alignment */}
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <Sparkles className="w-5 h-5 text-blue-600" />
+                <span className="text-base text-slate-700 font-bold">
                   {queryInput.trim() === '' ? 'Quick questions' : 'Suggested questions'}
                 </span>
               </div>
               {queryInput.trim() !== '' && (
-                <div className="flex items-center gap-1 text-xs text-slate-500">
+                <div className="flex items-center gap-2 text-xs text-slate-500">
                   <Zap className="w-3 h-3" />
                   <span>Smart suggestions</span>
                 </div>
               )}
             </div>
             {suggestions.length > 0 && (
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-slate-500 leading-relaxed">
                 Use ↑↓ to navigate, Enter to select, or click any suggestion
               </p>
             )}
           </div>
 
-          {/* Suggestions organized by category */}
-          <div className="space-y-4">
+          {/* Suggestions with Improved Layout */}
+          <div className="space-y-5">
             {Object.entries(groupedSuggestions).map(([category, categorySuggestions]) => (
               <div key={category}>
                 {Object.keys(groupedSuggestions).length > 1 && (
-                  <div className="flex items-center gap-2 mb-3">
+                  <div className="flex items-center gap-3 mb-4">
                     <span className="text-lg">{getCategoryIcon(category)}</span>
-                    <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                    <span className="text-sm font-semibold text-slate-600 uppercase tracking-wider">
                       {category}
                     </span>
                     <div className="flex-1 h-px bg-slate-200"></div>
                   </div>
                 )}
                 
-                <div className="flex flex-wrap gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {categorySuggestions.slice(0, 4).map((suggestion, categoryIndex) => {
                     const globalIndex = suggestions.indexOf(suggestion);
                     const isSelected = selectedIndex === globalIndex;
@@ -143,14 +143,14 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
                       <button
                         key={categoryIndex}
                         onClick={() => handleSuggestionClick(suggestion.display, globalIndex)}
-                        className={`group inline-flex items-center gap-2 px-4 py-3 bg-gradient-to-r rounded-2xl font-semibold transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-left ${
+                        className={`group flex items-center justify-between gap-3 px-5 py-4 bg-gradient-to-r rounded-2xl font-semibold transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 text-left w-full ${
                           isSelected 
                             ? 'bg-blue-100 border-blue-300 text-blue-800 shadow-lg -translate-y-0.5' 
                             : `${getCategoryColor(category)} hover:shadow-lg text-slate-700 hover:text-slate-800 border`
                         }`}
                       >
-                        <span className="leading-tight text-sm">{suggestion.display}</span>
-                        <ChevronRight className={`w-4 h-4 transition-all duration-200 ${
+                        <span className="leading-tight text-sm text-left flex-1">{suggestion.display}</span>
+                        <ChevronRight className={`w-4 h-4 transition-all duration-200 flex-shrink-0 ${
                           isSelected 
                             ? 'text-blue-600 translate-x-1' 
                             : 'text-slate-400 group-hover:text-slate-600 group-hover:translate-x-1'
@@ -163,10 +163,10 @@ export const QuerySuggestions: React.FC<QuerySuggestionsProps> = ({
             ))}
           </div>
 
-          {/* Footer hint */}
+          {/* Footer with Better Alignment */}
           {suggestions.length > 6 && (
-            <div className="mt-4 pt-3 border-t border-slate-200/50">
-              <p className="text-xs text-slate-500 text-center">
+            <div className="mt-6 pt-4 border-t border-slate-200/60">
+              <p className="text-sm text-slate-500 text-center leading-relaxed">
                 Showing top suggestions • Start typing for more specific options
               </p>
             </div>

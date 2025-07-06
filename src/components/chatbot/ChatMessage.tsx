@@ -51,44 +51,44 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
     <div className={`flex gap-4 ${isBot ? 'justify-start' : 'justify-end'} group`}>
       {isBot && (
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md ring-2 ring-blue-100 group-hover:ring-4 transition-all duration-200">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md ring-2 ring-blue-100 group-hover:ring-4 transition-all duration-200">
             <Bot className="w-5 h-5 text-white" />
           </div>
         </div>
       )}
       
-      <div className="flex flex-col max-w-[80%] gap-2">
+      <div className="flex flex-col max-w-[80%] gap-3">
         <div
-          className={`px-5 py-4 rounded-2xl transition-all duration-200 shadow-sm group-hover:shadow-md ${
+          className={`px-6 py-5 rounded-2xl transition-all duration-200 shadow-sm group-hover:shadow-md ${
             isBot
-              ? 'bg-gradient-to-br from-white to-slate-50/50 border border-slate-200/50 text-slate-800 backdrop-blur-sm'
+              ? 'bg-gradient-to-br from-white to-slate-50/60 border border-slate-200/60 text-slate-800 backdrop-blur-sm'
               : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg hover:shadow-xl'
           }`}
         >
-          {/* Enhanced Message Header for Bot */}
+          {/* Message Header for Bot with Better Alignment */}
           {isBot && messageIcon && (
-            <div className="flex items-center gap-3 mb-3 pb-3 border-b border-slate-200/50">
-              <div className="w-8 h-8 bg-white rounded-xl flex items-center justify-center shadow-sm ring-1 ring-slate-100">
+            <div className="flex items-center gap-4 mb-4 pb-4 border-b border-slate-200/60">
+              <div className="w-9 h-9 bg-white rounded-xl flex items-center justify-center shadow-sm ring-1 ring-slate-100">
                 {messageIcon}
               </div>
               <div className="flex-1">
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider leading-tight">
                   {category}
                 </span>
               </div>
             </div>
           )}
           
-          {/* Enhanced Message Content */}
+          {/* Message Content with Better Spacing */}
           <div className={`whitespace-pre-wrap leading-relaxed ${
-            isBot ? 'font-medium text-slate-700' : 'font-semibold text-white'
+            isBot ? 'font-medium text-slate-700 text-base' : 'font-semibold text-white text-base'
           }`}>
             {message.content}
           </div>
         </div>
         
-        {/* Enhanced Timestamp */}
-        <div className={`text-xs flex items-center gap-2 px-3 font-medium transition-opacity duration-200 ${
+        {/* Timestamp with Better Alignment */}
+        <div className={`text-xs flex items-center gap-2 px-4 font-medium transition-opacity duration-200 ${
           isBot ? 'text-slate-500' : 'text-slate-500 justify-end'
         } opacity-0 group-hover:opacity-100`}>
           <Clock className="w-3 h-3" />
@@ -98,7 +98,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
       
       {!isBot && (
         <div className="flex-shrink-0">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center shadow-md ring-2 ring-slate-200 group-hover:ring-4 transition-all duration-200">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center shadow-md ring-2 ring-slate-200 group-hover:ring-4 transition-all duration-200">
             <User className="w-5 h-5 text-white" />
           </div>
         </div>
