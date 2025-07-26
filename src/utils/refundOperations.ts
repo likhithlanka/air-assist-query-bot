@@ -61,9 +61,17 @@ export const createRefundInitiation = (transaction: Transaction, newRefundId: st
  * Generates a user-friendly message about the refund initiation
  */
 export const generateRefundInitiationMessage = (transaction: Transaction, refundId: string): string => {
-  return `I've reviewed your booking ${transaction.booking_id} and noticed the PNR generation failed. I know this is frustrating when you're ready to travel, so I've automatically initiated a refund for you.
+  return `We are initiating the refund.
 
-Your refund reference is ${refundId}, and we're processing $${transaction.total_amount_paid} back to your ${transaction.payment_instrument}. You should see this in your account within 5-7 business days, and you'll get an email confirmation shortly.
+I notice that your PNR generation failed for booking ${transaction.booking_id}. We've automatically initiated a refund request for you.
 
-No further action needed from you - I've got this handled! Is there anything else I can help with?`;
+Refund Details:
+- Refund ID: ${refundId}
+- Amount: $${transaction.total_amount_paid}
+- Status: Initiated
+- Expected processing time: 5-7 business days
+
+The refund will be processed back to your original payment method (${transaction.payment_instrument}). You'll receive an email confirmation shortly with further details.
+
+Is there anything else I can help you with regarding this refund?`;
 };

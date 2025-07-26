@@ -15,18 +15,12 @@ import {
   formatMeal,
   getContextualMessage 
 } from '@/utils/dataFormatting';
-import { 
-  analyzeSentiment, 
-  getEmpatheticOpener, 
-  adjustResponseTone, 
-  SentimentAnalysis 
-} from '@/utils/sentimentAnalysis';
 
 // Enhanced intent keywords with new categories
 const intentKeywords = {
   refund: {
     category: 'refundStatus',
-    keywords: ['refund', 'money', 'return', 'payment back', 'refunded', 'reimbursement', 'cancel', 'cancellation', 'money back', 'get back', 'reimburse', 'cash back'],
+    keywords: ['refund', 'money', 'return', 'payment back', 'refunded', 'reimbursement', 'cancel', 'cancellation'],
     questions: [
       {
         display: "What's my refund status?",
@@ -48,7 +42,7 @@ const intentKeywords = {
   },
   flight: {
     category: 'flightDetails',
-    keywords: ['flight', 'departure', 'arrival', 'plane', 'time', 'airport', 'gate', 'terminal', 'fly', 'flying', 'depart', 'arrive', 'schedule'],
+    keywords: ['flight', 'departure', 'arrival', 'plane', 'time', 'airport', 'gate', 'terminal'],
     questions: [
       {
         display: "What are my flight details?",
@@ -70,7 +64,7 @@ const intentKeywords = {
   },
   booking: {
     category: 'bookingDetails',
-    keywords: ['booking', 'reservation', 'seat', 'ticket', 'meal', 'addon', 'pnr', 'confirmation', 'book', 'reserved', 'confirm'],
+    keywords: ['booking', 'reservation', 'seat', 'ticket', 'meal', 'addon', 'pnr', 'confirmation'],
     questions: [
       {
         display: "Show my booking details",
@@ -92,7 +86,7 @@ const intentKeywords = {
   },
   payment: {
     category: 'paymentDetails',
-    keywords: ['payment', 'paid', 'cost', 'price', 'amount', 'total', 'bill', 'invoice', 'pay', 'charge', 'fee'],
+    keywords: ['payment', 'paid', 'cost', 'price', 'amount', 'total', 'bill', 'invoice'],
     questions: [
       {
         display: "How much did I pay?",
@@ -152,43 +146,22 @@ export const getQuerySuggestions = (
   transaction?: Transaction, 
   memory?: ConversationMemory
 ) => {
-  const inputLower = input.toLowerCase().trim();
+  const inputLower = input.toLowerCase();
   const suggestions: { display: string; intent: string; category: string; priority: number }[] = [];
   
   // Calculate keyword match count for each category
   const categoryPriorities: Record<string, number> = {};
   
   Object.entries(intentKeywords).forEach(([intent, config]) => {
-    const matchCount = config.keywords.filter(keyword => {
-      // More flexible keyword matching
-      const keywordLower = keyword.toLowerCase();
-      return inputLower.includes(keywordLower) || 
-             keywordLower.includes(inputLower) ||
-             // Check for partial matches (at least 3 characters)
-             (inputLower.length >= 3 && keywordLower.includes(inputLower)) ||
-             (inputLower.length >= 3 && inputLower.includes(keywordLower));
-    }).length;
+    const matchCount = config.keywords.filter(keyword => 
+      inputLower.includes(keyword) || keyword.includes(inputLower)
+    ).length;
     
     categoryPriorities[config.category] = matchCount;
     
-    // Debug logging
-    if (inputLower.length > 0) {
-      console.log(`Intent: ${intent}, Input: "${inputLower}", Matches: ${matchCount}, Keywords: ${config.keywords.join(', ')}`);
-    }
-    
     // Show suggestions if there are keyword matches or if input is empty
-    if (matchCount > 0 || inputLower.trim() === '') {
+    if (matchCount > 0 || inputLower === '') {
       config.questions.forEach(question => {
-        // Skip refund suggestions if transaction has no refund data
-        if (config.category === 'refundStatus' && transaction) {
-          const hasRefundData = transaction.refund_id && 
-                               transaction.refund_id.trim() !== '' && 
-                               transaction.refund_amount > 0;
-          if (!hasRefundData) {
-            return; // Skip this refund suggestion
-          }
-        }
-
         let priority = matchCount;
         
         // Boost priority based on conversation context
@@ -219,16 +192,9 @@ export const getQuerySuggestions = (
   });
   
   // Sort by priority and return top suggestions
-  const finalSuggestions = suggestions
+  return suggestions
     .sort((a, b) => b.priority - a.priority)
     .slice(0, 6); // Show top 6 suggestions
-    
-  // Debug logging
-  if (inputLower.length > 0) {
-    console.log(`Final suggestions for "${inputLower}":`, finalSuggestions.map(s => `${s.display} (priority: ${s.priority})`));
-  }
-  
-  return finalSuggestions;
 };
 
 // Contextual priority calculation based on transaction data
@@ -270,73 +236,94 @@ const getContextualPriority = (intent: string, transaction: Transaction): number
 const generateRefundStatusResponse = (transaction: Transaction): string => {
   // Check if refund is initiated
   if (!transaction.refund_id || transaction.refund_amount === 0) {
-    return `I don't see any active refund requests for booking ${transaction.booking_id}. If you need to cancel and get your money back, I can connect you with our support team who can review your options based on your ticket type and timing.`;
+    return `There is no refund initiated for your booking ${transaction.booking_id}. If you believe you're eligible for a refund, please contact customer support.`;
   }
   
-  return `Your refund for booking ${transaction.booking_id} is actively being processed! Status: "${formatStatus(transaction.refund_status)}", Reference: ${transaction.refund_id}, Amount: ${formatCurrency(transaction.refund_amount)}. Everything is moving along smoothly.`;
+  return `Your refund status for booking ${transaction.booking_id} is: ${formatStatus(transaction.refund_status)}
+Refund ID: ${transaction.refund_id}
+Amount: ${formatCurrency(transaction.refund_amount)}`;
 };
 
 const generateRefundTimingResponse = (transaction: Transaction): string => {
   // Check if refund is initiated
   if (!transaction.refund_id || transaction.refund_amount === 0) {
-    return `No active refund for booking ${transaction.booking_id} right now. Timing for new refunds depends on your ticket type and how close to departure you are. Want me to connect you with support for specific timing?`;
+    return `There is no refund initiated for your booking ${transaction.booking_id}. Please contact customer support if you believe you're eligible for a refund.`;
   }
   
   const expectedDate = calculateExpectedRefundDate(transaction.refund_date, transaction.refund_mode);
-  return `Based on your ${transaction.refund_mode} refund started on ${formatDate(transaction.refund_date)}, expect to see the money by ${expectedDate}. Banks sometimes take an extra day or two, but most arrive right on schedule.`;
+  return `You can expect your refund by ${expectedDate} via ${transaction.refund_mode}. Processing started on ${formatDate(transaction.refund_date)}.`;
 };
 
 const generateRefundAmountResponse = (transaction: Transaction): string => {
   // Check if refund is initiated
   if (!transaction.refund_id || transaction.refund_amount === 0) {
-    return `No refund calculated for booking ${transaction.booking_id} yet. The amount depends on your ticket type and timing. Some get full refunds, others might have fees or qualify for travel credits. Want me to connect you with support for details?`;
+    return `There is no refund initiated for your booking ${transaction.booking_id}. You are not currently eligible for a refund.`;
   }
   
-  return `Great news! You're getting a full refund of ${formatCurrency(transaction.refund_amount)} for booking ${transaction.booking_id} - no cancellation fees! The money goes back through ${transaction.refund_mode}, same method you used originally.`;
+  return `You'll be refunded ${formatCurrency(transaction.refund_amount)} through ${transaction.refund_mode} for booking ${transaction.booking_id}.`;
 };
 
 const generateFlightDetailsResponse = (transaction: Transaction): string => {
   const contextualMsg = getContextualMessage(transaction);
   
-  const response = `Here are your flight details! Flight ${formatFlightNumber(transaction.flight_number)} departs ${formatAirportCode(transaction.departure_airport)} at ${formatTime(transaction.departure_time)} and arrives ${formatAirportCode(transaction.arrival_airport)} at ${formatTime(transaction.arrival_time)} on ${formatDate(transaction.date)}. You're in ${formatTravelClass(transaction.travel_class)} class, seat ${transaction.seat_number} (${formatSeatType(transaction.seat_type)}).`;
+  const response = `Flight: ${formatFlightNumber(transaction.flight_number)}
+From: ${formatAirportCode(transaction.departure_airport)} at ${formatTime(transaction.departure_time)}
+To: ${formatAirportCode(transaction.arrival_airport)} at ${formatTime(transaction.arrival_time)}
+Date: ${formatDate(transaction.date)}
+Class: ${formatTravelClass(transaction.travel_class)}
+Seat: ${transaction.seat_number} (${formatSeatType(transaction.seat_type)})`;
 
   return contextualMsg ? `${response}\n\n${contextualMsg}` : response;
 };
 
 const generateDepartureTimeResponse = (transaction: Transaction): string => {
   const contextualMsg = getContextualMessage(transaction);
-  const response = `Flight ${formatFlightNumber(transaction.flight_number)} departs ${formatAirportCode(transaction.departure_airport)} at ${formatTime(transaction.departure_time)} on ${formatDate(transaction.date)}. Remember to arrive early for check-in and security!`;
+  const response = `Your flight ${formatFlightNumber(transaction.flight_number)} departs from ${formatAirportCode(transaction.departure_airport)} at ${formatTime(transaction.departure_time)} on ${formatDate(transaction.date)}.`;
   
   return contextualMsg ? `${response}\n\n${contextualMsg}` : response;
 };
 
 const generateArrivalTimeResponse = (transaction: Transaction): string => {
-  return `Flight ${formatFlightNumber(transaction.flight_number)} arrives at ${formatAirportCode(transaction.arrival_airport)} at ${formatTime(transaction.arrival_time)} on ${formatDate(transaction.date)}. Actual times may vary slightly due to air traffic and weather.`;
+  return `Your flight ${formatFlightNumber(transaction.flight_number)} arrives at ${formatAirportCode(transaction.arrival_airport)} at ${formatTime(transaction.arrival_time)} on ${formatDate(transaction.date)}.`;
 };
 
 const generateBookingDetailsResponse = (transaction: Transaction): string => {
-  return `Booking ${transaction.booking_id} for ${formatName(transaction.passenger_name)}, contact: ${formatPhoneNumber(transaction.contact_number)}, PNR: ${formatPNR(transaction.pnr)}. Total paid: ${formatCurrency(transaction.total_amount_paid)}. Add-ons: ${transaction.baggage_addon ? 'Baggage ✓' : 'Standard baggage'}, ${transaction.wifi_addon ? 'WiFi ✓' : 'No WiFi'}, Meal: ${formatMeal(transaction.meal_selected)}. Check-in: ${formatStatus(transaction.checkin_status)}.`;
+  return `Booking ID: ${transaction.booking_id}
+PNR: ${formatPNR(transaction.pnr)}
+Passenger: ${formatName(transaction.passenger_name)}
+Contact: ${formatPhoneNumber(transaction.contact_number)}
+Total Amount Paid: ${formatCurrency(transaction.total_amount_paid)}
+Add-ons: Baggage: ${transaction.baggage_addon}, WiFi: ${transaction.wifi_addon}
+Meal: ${formatMeal(transaction.meal_selected)}
+Check-in Status: ${formatStatus(transaction.checkin_status)}`;
 };
 
 const generateSeatNumberResponse = (transaction: Transaction): string => {
-  return `You're in seat ${transaction.seat_number} (${formatSeatType(transaction.seat_type)}) in ${formatTravelClass(transaction.travel_class)} class for flight ${formatFlightNumber(transaction.flight_number)}. If you want to change seats, check the airline's website for available options.`;
+  return `Your seat number is ${transaction.seat_number} (${formatSeatType(transaction.seat_type)}) in ${formatTravelClass(transaction.travel_class)} class for flight ${formatFlightNumber(transaction.flight_number)}.`;
 };
 
 const generateMealSelectionResponse = (transaction: Transaction): string => {
-  return `You've selected ${formatMeal(transaction.meal_selected)} for flight ${formatFlightNumber(transaction.flight_number)}. This choice is locked in with the airline. If you want to change it, contact them before 24 hours prior to departure.`;
+  return `You selected: ${formatMeal(transaction.meal_selected)} for your flight ${formatFlightNumber(transaction.flight_number)}.`;
 };
 
 // Payment response functions
 const generatePaymentAmountResponse = (transaction: Transaction): string => {
-  return `For booking ${transaction.booking_id}, you paid ${formatCurrency(transaction.total_amount_paid)} total: ${formatCurrency(transaction.ticket_price)} ticket price plus ${formatCurrency(transaction.taxes)} in taxes and fees. Everything processed successfully!`;
+  return `You paid a total of ${formatCurrency(transaction.total_amount_paid)} for booking ${transaction.booking_id}.
+Breakdown: Ticket Price: ${formatCurrency(transaction.ticket_price)}, Taxes: ${formatCurrency(transaction.taxes)}`;
 };
 
 const generatePaymentMethodResponse = (transaction: Transaction): string => {
-  return `You paid with your ${transaction.payment_instrument} through ${transaction.payment_gateway} on ${transaction.platform}. The charge should appear on your statement with booking reference ${transaction.booking_id}.`;
+  return `You paid using ${transaction.payment_instrument} via ${transaction.payment_gateway} on ${transaction.platform}.`;
 };
 
 const generatePaymentBreakdownResponse = (transaction: Transaction): string => {
-  return `Payment summary for booking ${transaction.booking_id}: Ticket ${formatCurrency(transaction.ticket_price)} + Taxes ${formatCurrency(transaction.taxes)} = Total ${formatCurrency(transaction.total_amount_paid)}. Paid via ${transaction.payment_instrument} through ${transaction.payment_gateway}. Status: ${formatStatus(transaction.status)}. ${transaction.coupon_used ? `Coupon "${transaction.coupon_used}" applied.` : 'No discounts used.'}`;
+  return `Payment Breakdown for booking ${transaction.booking_id}:
+Ticket Price: ${formatCurrency(transaction.ticket_price)}
+Taxes: ${formatCurrency(transaction.taxes)}
+Total Amount: ${formatCurrency(transaction.total_amount_paid)}
+Payment Method: ${transaction.payment_instrument} via ${transaction.payment_gateway}
+Payment Status: ${formatStatus(transaction.status)}
+${transaction.coupon_used ? `Coupon Used: ${transaction.coupon_used}` : 'No coupon used'}`;
 };
 
 // New response functions for enhanced categories
@@ -347,23 +334,13 @@ const generateRefundEligibilityResponse = (transaction: Transaction): string => 
   
   if (!transaction.refund_id || transaction.refund_amount === 0) {
     if (daysDiff > 1) {
-      return `I've looked at your booking ${transaction.booking_id}, and the good news is that you still have some time before your departure date, which typically means you have more options available.
-
-Refund eligibility really depends on the type of ticket you purchased when you made your booking. Some tickets are fully refundable, others allow refunds with a fee, and some are non-refundable but might still qualify for travel credits or refunds in special circumstances.
-
-Since your flight isn't imminent, you're in a better position than travelers who are trying to cancel at the last minute. I'd recommend reaching out to our customer support team who can review the specific terms of your ticket and walk you through exactly what options are available to you and what the process would look like.`;
+      return `Your booking ${transaction.booking_id} may be eligible for cancellation. Refund eligibility depends on your ticket type and timing. For assistance with refund requests, please contact customer support.`;
     } else {
-      return `I can see that your flight is coming up very soon - within the next 24 hours. This does make the refund situation more challenging, as most airline policies become much more restrictive when you're this close to departure.
-
-That said, there are sometimes exceptions for medical emergencies, severe weather, or other extenuating circumstances. Even if a standard refund isn't available, you might be eligible for a travel credit that you could use for future bookings.
-
-Given the time-sensitive nature of your situation, I'd strongly recommend calling our customer support line immediately. They can review your specific circumstances and let you know if there are any options available, even at this late stage.`;
+      return `Your flight is within 24 hours. Refund eligibility is limited. Please contact customer support immediately for urgent cancellation requests.`;
     }
   }
   
-  return `Actually, I can see that you already have an active refund in progress! Your refund reference number is ${transaction.refund_id} and it's for ${formatCurrency(transaction.refund_amount)}. The current status shows as "${transaction.refund_status}".
-
-It looks like the refund eligibility question has already been answered in your favor, and the process is underway. You don't need to worry about whether you qualify - you've already been approved and the refund is being processed.`;
+  return `You already have an active refund (${transaction.refund_id}) for INR ${transaction.refund_amount}. Status: ${transaction.refund_status}`;
 };
 
 const generateFlightStatusResponse = (transaction: Transaction): string => {
@@ -372,27 +349,13 @@ const generateFlightStatusResponse = (transaction: Transaction): string => {
   const daysDiff = Math.ceil((flightDate.getTime() - now.getTime()) / (1000 * 3600 * 24));
   
   if (daysDiff < 0) {
-    return `Looking at your booking, flight ${transaction.flight_number} was scheduled to depart on ${transaction.date}, which has already passed. If you missed this flight or there were any issues with your travel, our customer support team can help you understand what options might be available.
-
-Sometimes passengers are able to rebook on later flights or request refunds depending on the circumstances of why they didn't travel. If this was due to an airline delay or cancellation, you might have additional protections and compensation available.`;
+    return `Your flight ${transaction.flight_number} has already departed on ${transaction.date}.`;
   } else if (daysDiff === 0) {
-    return `Your flight ${transaction.flight_number} is scheduled to depart today at ${transaction.departure_time}! This is an exciting day, but also important to stay on top of any last-minute changes.
-
-I always recommend checking directly with the airline for the most up-to-date information about gate assignments, any potential delays, or boarding time changes. Airlines can sometimes update these details even a few hours before departure.
-
-Make sure you've completed your check-in if you haven't already, and give yourself plenty of time to get to the airport and through security. Have a wonderful trip!`;
+    return `Your flight ${transaction.flight_number} is scheduled to depart today at ${transaction.departure_time}. Please check with the airline for real-time updates.`;
   } else if (daysDiff === 1) {
-    return `Tomorrow's the big day! Your flight ${transaction.flight_number} is scheduled to depart at ${transaction.departure_time}. Since you're within the 24-hour window now, online check-in should be available if you haven't taken care of that yet.
-
-It's always a good idea to check in as early as possible to secure your preferred seat and get your boarding pass ready. You might also want to verify your flight status tomorrow morning before heading to the airport, just in case there are any schedule adjustments.
-
-Don't forget to check the weather at both your departure and arrival cities - it can sometimes affect flight schedules even when everything else looks good.`;
+    return `Your flight ${transaction.flight_number} is scheduled for tomorrow at ${transaction.departure_time}. Remember to check-in online!`;
   } else {
-    return `Your flight ${transaction.flight_number} is coming up on ${transaction.date} at ${transaction.departure_time}. You've got ${daysDiff} days to prepare, which gives you a nice window to get everything organized.
-
-Online check-in will open exactly 24 hours before your departure time, so mark that on your calendar if you like to check in right when it becomes available. In the meantime, you can keep an eye on any potential schedule changes by checking the airline's website or app.
-
-This is also a good time to review your travel documents, confirm your transportation to the airport, and make sure you understand the baggage policies for your specific flight.`;
+    return `Your flight ${transaction.flight_number} is scheduled for ${transaction.date} at ${transaction.departure_time}. Check-in opens 24 hours before departure.`;
   }
 };
 
@@ -408,71 +371,101 @@ const generateCheckinStatusResponse = (transaction: Transaction): string => {
   const flightDate = new Date(transaction.departure_time);
   const hoursDiff = Math.ceil((flightDate.getTime() - now.getTime()) / (1000 * 3600));
   
+  let checkinMessage = `Check-in Status: ${transaction.checkin_status}`;
+  
   if (transaction.checkin_status === 'completed') {
-    return `You're all checked in! Boarding group: ${transaction.boarding_group}, Seat: ${transaction.seat_number}. You should have your boarding pass ready. Arrive early for security and watch for gate assignments.`;
+    checkinMessage += `\nBoarding Group: ${transaction.boarding_group}`;
+    if (transaction.seat_number) {
+      checkinMessage += `\nSeat: ${transaction.seat_number}`;
+    }
   } else if (hoursDiff <= 24 && hoursDiff > 0) {
-    return `Online check-in is now available! You can check in anytime until 1 hour before departure. Do it soon to get the best seat selection and have one less thing to worry about at the airport.`;
+    checkinMessage += `\nOnline check-in is now available! You can check-in up to 1 hour before departure.`;
   } else if (hoursDiff > 24) {
-    return `Check-in opens in ${Math.ceil(hoursDiff - 24)} hours (24 hours before departure). Perfect time to prepare your documents and confirm travel plans!`;
+    checkinMessage += `\nOnline check-in opens 24 hours before departure (${Math.ceil(hoursDiff - 24)} hours remaining).`;
   } else {
-    return `Online check-in has closed. No worries - head to the airline counter or self-service kiosks at the airport. Just arrive extra early to complete check-in there.`;
+    checkinMessage += `\nCheck-in is no longer available online. Please visit the airport counter.`;
   }
+  
+  return checkinMessage;
 };
 
 const generateBoardingGroupResponse = (transaction: Transaction): string => {
   if (transaction.boarding_group) {
-    return `You're in boarding group ${transaction.boarding_group} for flight ${formatFlightNumber(transaction.flight_number)}, seat ${transaction.seat_number}. Lower numbers/letters typically board first. Be near the gate when boarding starts!`;
+    return `Your boarding group is: ${transaction.boarding_group}
+Flight: ${formatFlightNumber(transaction.flight_number)}
+Seat: ${transaction.seat_number}`;
   }
   
   if (transaction.checkin_status !== 'completed') {
-    return `Boarding group will be assigned when you check in. Current status: "${formatStatus(transaction.checkin_status)}". Complete check-in to get your boarding group assignment.`;
+    return `Boarding group will be assigned after check-in completion. Check-in status: ${formatStatus(transaction.checkin_status)}`;
   }
   
-  return `No boarding group info available right now. Check your boarding pass for the group assignment, or contact support if you need help finding it.`;
+  return `Boarding group information is not available. Please check your boarding pass or contact customer support.`;
 };
 
 const generateBookingStatusResponse = (transaction: Transaction): string => {
+  const statusMessage = `Booking Status: ${formatStatus(transaction.status)}
+Booking ID: ${transaction.booking_id}
+PNR: ${formatPNR(transaction.pnr)}`;
+  
   if (transaction.status === 'confirmed') {
-    return `Perfect! Your booking ${transaction.booking_id} is fully confirmed. PNR: ${formatPNR(transaction.pnr)}. Your seats are reserved, payment processed, and you're guaranteed a spot on the flight. All set for travel!`;
+    return `${statusMessage}
+✅ Your booking is confirmed and ready!`;
   } else if (transaction.status === 'pending') {
-    return `Your booking ${transaction.booking_id} is currently pending (PNR: ${formatPNR(transaction.pnr)}). This usually resolves to "confirmed" within minutes as systems process your reservation. If it's been over 20 minutes, worth calling support.`;
+    return `${statusMessage}
+⏳ Your booking is pending confirmation. This usually takes a few minutes to process.`;
   } else {
-    return `Your booking ${transaction.booking_id} shows an unusual status: ${formatStatus(transaction.status)} (PNR: ${formatPNR(transaction.pnr)}). This needs attention from our support team who can check for payment issues or system glitches and fix it quickly.`;
+    return `${statusMessage}
+❗ Please contact customer support for assistance with your booking status.`;
   }
 };
 
 const generateContactInfoResponse = (): string => {
-  return `I want to make sure you can reach our customer support team whenever you need them! Here are all the ways you can get in touch:
+  return `📞 Customer Support Contact Information:
 
-For immediate assistance, our phone support is available 24/7 at 1800-XXX-XXXX. This is your best bet for urgent issues or when you need to speak with someone right away about flight changes or cancellations.
+🔵 Phone: 1800-XXX-XXXX (24/7 Support)
+📧 Email: support@airline.com
+💬 Live Chat: Available on our website
+🌐 Website: www.airline.com/support
 
-If you prefer digital communication, you can email us at support@airline.com, or use the live chat feature on our website at www.airline.com/support. The live chat is particularly convenient because you can get real-time help without waiting on hold.
+For urgent flight-related issues:
+📱 Mobile App: Download our app for instant support
+✈️ Airport Helpdesk: Available at all major airports
 
-For travel days, don't forget about our mobile app - it's got instant support features and can handle many common requests right from your phone. Plus, if you're already at the airport, there are helpdesks available at all major airports where our staff can assist you in person.
-
-Pro tip: if you're calling during busy travel periods, try reaching out between 6 AM and 10 PM for the fastest response times. That's when we're typically less swamped with calls!`;
+Best times to call: 6 AM - 10 PM for faster response`;
 };
 
 const generateGeneralHelpResponse = (transaction: Transaction): string => {
-  return `I'm so glad you reached out! I'm here to help you with everything related to your booking ${transaction.booking_id}, and I've got access to all the details of your trip.
+  return `I'm here to help with your booking ${transaction.booking_id}! 
 
-Here's what I can help you with right away: I can pull up your complete flight details and status, show you all your booking information including seat assignments and meal preferences, give you updates on any payment or refund situations, and walk you through check-in and boarding details.
+I can assist you with:
+✈️ Flight details and status
+🎫 Booking information
+💰 Payment and refund status  
+🪑 Seat and meal preferences
+📋 Check-in and boarding details
 
-I'm like your personal travel assistant for this booking - I can answer questions, explain policies, and help you understand exactly what's happening with your trip. For more complex requests like actually changing your booking or handling special circumstances, I'll connect you with our customer support team who have the tools to make those kinds of updates.
+For complex issues or changes to your booking, please contact our customer support team using the contact information I can provide.
 
-What would you like to know about your trip? I'm here to make your travel experience as smooth as possible!`;
+What specific information would you like to know about your booking?`;
 };
 
 const generateReportIssueResponse = (): string => {
-  return `I understand you're dealing with an issue, and I want to make sure you get the right help as quickly as possible.
+  return `To report an issue, please contact our customer support team:
 
-For urgent situations - like if your flight has been delayed, cancelled, or you're dealing with a time-sensitive problem at the airport - please call our 24/7 emergency line at 1800-XXX-XXXX immediately. They have the tools and authority to handle crisis situations and can often resolve urgent issues on the spot.
+🚨 For urgent issues (flight delays, cancellations):
+📞 Call: 1800-XXX-XXXX (24/7)
 
-For less urgent concerns, you have a few good options: you can email us at support@airline.com with a detailed description of what's happening, or use the live chat feature on our website for real-time assistance.
+📋 For general issues:
+📧 Email: support@airline.com
+💬 Live Chat: Available on our website
 
-When you contact support, having your booking ID and PNR ready will help them pull up your information quickly and get straight to solving your problem.
+Please have your booking ID and PNR ready when contacting support.
 
-Before you reach out though, let me see if I can help with your issue right now! I can handle inquiries about refund status, provide flight information, verify booking details, and explain policies. Sometimes I can resolve things immediately without you needing to wait for additional support.`;
+Common issues I can help with right now:
+• Refund status inquiries
+• Flight information
+• Booking details verification`;
 };
 
 // Generic category responses (fallback when no specific intent is detected)
@@ -660,12 +653,19 @@ const generateContextualSupportResponse = (transaction: Transaction, query: stri
   return generateContactInfoResponse();
 };
 
-const generateFallbackResponse = (transaction: Transaction, query: string, sentimentAnalysis?: SentimentAnalysis): string => {
+const generateFallbackResponse = (transaction: Transaction, query: string): string => {
   if (query.includes('help') || query.includes('assist')) {
     return generateGeneralHelpResponse(transaction);
   }
   
-  return `I'm not sure what you're asking about regarding booking ${transaction.booking_id}. I can help with flight details, refund status, booking info, payment details, and check-in status. Could you try rephrasing your question? I'm here to help make your travel smoother!`;
+  return `I apologize, but I couldn't understand your query. I can help you with:
+• Flight details and timing
+• Refund status and information  
+• Booking and payment details
+• Check-in and boarding status
+• Contact information for support
+
+Please try rephrasing your question or select from the suggested options.`;
 };
 
 // Update conversation memory
