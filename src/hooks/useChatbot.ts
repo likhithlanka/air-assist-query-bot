@@ -1,15 +1,9 @@
 
 import { useState, useCallback } from 'react';
-import { Message, Transaction, ChatState, ConversationMemory } from '@/types/chatbot';
+import { Message, Transaction, ChatState } from '@/types/chatbot';
 import { sheetDbService } from '@/services/sheetDbService';
 import { validateEmail } from '@/utils/validation';
 import { generateResponse } from '@/utils/responseGenerator';
-import { 
-  shouldInitiateRefund, 
-  generateNextRefundId, 
-  createRefundInitiation, 
-  generateRefundInitiationMessage 
-} from '@/utils/refundOperations';
 
 export const useChatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
@@ -26,15 +20,6 @@ export const useChatbot = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [queryInput, setQueryInput] = useState('');
-  
-  // Enhanced conversation memory
-  const [conversationMemory, setConversationMemory] = useState<ConversationMemory>({
-    lastIntent: null,
-    askedTopics: [],
-    userPreferences: {},
-    contextData: {},
-    conversationHistory: []
-  });
 
   const addMessage = useCallback((content: string, type: 'user' | 'bot') => {
     const newMessage: Message = {
@@ -77,58 +62,11 @@ export const useChatbot = () => {
     }
   }, [addMessage]);
 
-  const selectTransaction = useCallback(async (transaction: Transaction) => {
+  const selectTransaction = useCallback((transaction: Transaction) => {
     setSelectedTransaction(transaction);
-    setIsLoading(true);
-    
-    // Check if this transaction qualifies for automatic refund initiation
-    if (shouldInitiateRefund(transaction)) {
-      try {
-        // Generate next refund ID (now async)
-        const newRefundId = await generateNextRefundId();
-        
-        // Create refund initiation data
-        const refundData = createRefundInitiation(transaction, newRefundId);
-        
-        // Attempt to update the backend/sheet (non-blocking)
-        const updateSuccess = await sheetDbService.createRefundRequest(refundData);
-        
-        // Update local transaction state
-        const updatedTransaction = {
-          ...transaction,
-          refund_id: newRefundId,
-          refund_status: 'Initiated',
-          refund_amount: transaction.total_amount_paid,
-          refund_date: refundData.refund_date,
-          refund_mode: refundData.refund_mode
-        };
-        
-        setSelectedTransaction(updatedTransaction);
-        
-        // Update the transactions list to reflect the change
-        setTransactions(prev => prev.map(t => 
-          t.transaction_id === transaction.transaction_id ? updatedTransaction : t
-        ));
-        
-        // Generate and display refund initiation message
-        const refundMessage = generateRefundInitiationMessage(transaction, newRefundId);
-        addMessage(refundMessage, 'bot');
-        
-        if (!updateSuccess) {
-          addMessage('Note: The refund request has been initiated locally. Please contact customer service to ensure it\'s processed in our system.', 'bot');
-        }
-        
-      } catch (error) {
-        console.error('Error initiating refund:', error);
-        addMessage(`Selected booking ${transaction.booking_id}. I notice there may be an issue with your PNR generation. What would you like to know about this transaction?`, 'bot');
-      }
-    } else {
-      addMessage(`Selected booking ${transaction.booking_id}. What would you like to know about this transaction?`, 'bot');
-    }
-    
+    addMessage(`Selected booking ${transaction.booking_id}. What would you like to know about this transaction?`, 'bot');
     setCurrentState(ChatState.QUERY_HANDLING);
-    setIsLoading(false);
-  }, [addMessage, transactions]);
+  }, [addMessage]);
 
   const handleQuery = useCallback(async (query: string) => {
     if (!selectedTransaction) return;
@@ -137,27 +75,14 @@ export const useChatbot = () => {
     setIsLoading(true);
 
     try {
-      // Use enhanced response generation with conversation memory
-      const response = generateResponse(query, selectedTransaction, conversationMemory);
+      const response = generateResponse(query, selectedTransaction);
       addMessage(response, 'bot');
-      
-      // Update conversation memory state
-      setConversationMemory(prev => ({
-        ...prev,
-        contextData: {
-          ...prev.contextData,
-          lastQuery: query,
-          lastResponse: response,
-          queryTimestamp: new Date().toISOString()
-        }
-      }));
-      
     } catch (error) {
-      addMessage('I apologize, but I encountered an error processing your request. Please try again or contact our support team for assistance.', 'bot');
+      addMessage('I apologize, but I can only provide information about refund status, flight details, and booking details. For other queries, please contact our support team.', 'bot');
     } finally {
       setIsLoading(false);
     }
-  }, [selectedTransaction, addMessage, conversationMemory]);
+  }, [selectedTransaction, addMessage]);
 
   return {
     messages,
@@ -167,7 +92,6 @@ export const useChatbot = () => {
     transactions,
     selectedTransaction,
     queryInput,
-    conversationMemory,
     setQueryInput,
     sendMessage,
     setEmail,

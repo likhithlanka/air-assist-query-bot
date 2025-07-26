@@ -1,39 +1,27 @@
+
 export interface Transaction {
-  transaction_id: string;
-  user_email: string;
-  date: string;
-  payment_instrument: string;
-  payment_gateway: string;
-  platform: string;
-  amount: number;
-  status: string;
-  refund_id: string;
-  refund_status: string;
-  refund_amount: number;
-  refund_date: string;
+  id: string;
   booking_id: string;
-  pnr: string;
+  email: string;
   passenger_name: string;
-  contact_number: string;
-  frequent_flyer_id: string;
   flight_number: string;
   departure_airport: string;
   arrival_airport: string;
   departure_time: string;
   arrival_time: string;
+  travel_date: string;
   travel_class: string;
   seat_number: string;
   seat_type: string;
-  meal_selected: string;
+  total_amount_paid: number;
+  refund_status: string;
+  refund_amount: number;
+  refund_date: string;
+  refund_mode: string;
   baggage_addon: string;
   wifi_addon: string;
-  checkin_status: string;
-  boarding_group: string;
-  coupon_used: string;
-  ticket_price: number;
-  taxes: number;
-  total_amount_paid: number;
-  refund_mode: string;
+  meal_selected: string;
+  status: string;
 }
 
 export interface Message {
@@ -59,32 +47,4 @@ export interface IntentCategory {
   category: string;
   keywords: string[];
   questions: QuerySuggestion[];
-}
-
-// Enhanced conversation memory interface
-export interface ConversationMemory {
-  lastIntent: string | null;
-  askedTopics: string[];
-  userPreferences: Record<string, any>;
-  contextData: Record<string, any>;
-  conversationHistory: string[];
-}
-
-// Enhanced question categories
-export enum QuestionCategory {
-  REFUND = 'refund',
-  FLIGHT = 'flight', 
-  BOOKING = 'booking',
-  PAYMENT = 'payment',
-  STATUS = 'status',
-  CONTACT = 'contact',
-  GENERAL = 'general'
-}
-
-// Context-aware response interface
-export interface ResponseContext {
-  category: QuestionCategory;
-  confidence: number;
-  contextualFactors: string[];
-  suggestedFollowUps: QuerySuggestion[];
 }
